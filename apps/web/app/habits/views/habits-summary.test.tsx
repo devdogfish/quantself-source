@@ -1,0 +1,50 @@
+import { afterEach, expect, mock, test } from "bun:test";
+import { act, StrictMode } from "react";
+import { createTestDom } from "@/components/shared/test-dom";
+import { computeHabitSummary } from "../../../../api/src/habits-summary-core";
+import { createHabitStore, habitToday, type Occurrence } from "../habit-store";
+const dom = createTestDom();
+let pathname = "/habits/summary";
+mock.module("next/navigation", () => ({ useRouter: () => ({ push() {} }), usePathname: () => pathname }));
+const originalFetch = globalThis.fetch;
+let transport = originalFetch;
+globalThis.fetch = ((...args) => transport(...args)) as typeof fetch;
+const { HabitsDataProvider } = await import("./habits-data");
+const { HabitsScreen } = await import("./habits-screen");
+afterEach(() => { transport = originalFetch; pathname = "/habits/summary"; });
+const today = habitToday();
+const data = computeHabitSummary({ projection: { habits: [], stacks: [], gate: { window: 14, required: 10 }, diagnostics: [] }, revisions: [], occurrences: [], today });
+
+test("Summary cold and warm each use one request; toggles zero and deferred response remains usable", async () => {
+  const requests: string[] = []; let finish!: (r: Response) => void;
+  transport = ((input: Request) => { requests.push(input.url); return new Promise(resolve => { finish = resolve; }); }) as typeof fetch;
+  const render = () => dom.render(<StrictMode><HabitsDataProvider fixture={false}><HabitsScreen view="summary" /></HabitsDataProvider></StrictMode>);
+  const start = performance.now(); await render();
+  expect(requests).toHaveLength(1); expect(requests[0]).toContain("/habits/summary");
+  expect(dom.container.textContent).toContain("Loading habits");
+  await act(async () => finish(Response.json(data)));
+  const coldMs = performance.now() - start;
+  expect(dom.container.textContent).toContain("System health");
+  const missed = [...dom.container.querySelectorAll("label")].find(x => x.textContent === "Missed")!;
+  await dom.click(missed); expect(requests).toHaveLength(1);
+  expect(dom.container.querySelector('[aria-label="Daily missed habits"]')).not.toBeNull();
+  pathname = "/habits/system"; await render();
+  pathname = "/habits/summary"; const warm = performance.now(); await render();
+  expect(requests.filter(u => u.endsWith("/habits/summary"))).toHaveLength(2);
+  expect(dom.container.textContent).toContain("System health");
+  await act(async () => finish(Response.json(data)));
+  console.info(JSON.stringify({ coldSummaryRequests: 1, warmSummaryRequests: 1, activityToggleRequests: 0, coldMs, warmMs: performance.now() - warm, responseBytes: JSON.stringify(data).length }));
+});
+
+test("pending command acknowledgements coalesce to one Summary refresh after Undo/Redo", async () => {
+  const counts: string[] = []; let resolve!: (r: Occurrence) => void;
+  transport = (async (input: Request) => { counts.push(input.url); return Response.json(data); }) as typeof fetch;
+  const row: Occurrence = { habitId: "walk", date: today, status: "open", note: "", revision: 0, missed: false, definitionSha: "1" };
+  const store = createHabitStore(() => new Promise(r => { resolve = r; })); store.merge([row]);
+  await dom.render(<HabitsDataProvider fixture={false} store={store}><HabitsScreen view="summary" /></HabitsDataProvider>);
+  expect(counts).toHaveLength(1);
+  await act(async () => { store.edit(row, { status: "minimum", note: "" }); store.undo(); store.redo(); });
+  expect(counts).toHaveLength(1); expect(store.row(row).status).toBe("minimum");
+  for (let i = 1; i <= 3; i++) await act(async () => resolve({ ...row, status: i === 2 ? "open" : "minimum", revision: i }));
+  expect(counts).toHaveLength(2); expect(store.row(row).status).toBe("minimum");
+});

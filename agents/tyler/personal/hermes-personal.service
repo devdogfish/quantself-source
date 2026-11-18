@@ -1,0 +1,28 @@
+[Unit]
+Description=Tyler Personal Assistant gateway
+Wants=network-online.target
+After=network-online.target tailscaled.service
+
+[Service]
+User=hermes-personal
+StateDirectory=quantself-tyler-personal
+StateDirectoryMode=0700
+WorkingDirectory=/var/lib/quantself-tyler-personal
+Environment=HERMES_HOME=/var/lib/quantself-tyler-personal/.hermes
+Environment=HERMES_MANAGED_DIR=/etc/hermes-personal
+Environment=HERMES_SUPERVISED_CHILD=1
+Environment=PATH=/usr/local/bin:/usr/bin:/bin
+EnvironmentFile=/etc/hermes-personal/gateway.env
+EnvironmentFile=/etc/hermes-personal/credentials.env
+ExecStart=/var/lib/quantself-tyler-personal/.hermes/hermes-agent/.hermes/bin/hermes gateway run
+Restart=on-failure
+RestartSec=5
+UMask=0077
+NoNewPrivileges=yes
+ProtectHome=yes
+ProtectSystem=strict
+PrivateTmp=yes
+LimitCORE=0
+
+[Install]
+WantedBy=multi-user.target

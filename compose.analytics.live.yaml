@@ -1,0 +1,51 @@
+services:
+  relay:
+    build:
+      context: ./relay
+      dockerfile_inline: |
+        FROM oven/bun:1.3.14-slim@sha256:d56a2534ffd262e92c12fd3249d3924d296d97086da773f821d7d0477435ea04
+        WORKDIR /app
+        COPY --chown=bun:bun --chmod=0444 relay.js ./
+        USER bun
+        CMD ["bun", "relay.js"]
+    environment:
+      API_HOSTNAME: 0.0.0.0
+      API_PORT: "4311"
+      QUANTSELF_WEBSITE_ANALYTICS_TOKEN: ${QUANTSELF_WEBSITE_ANALYTICS_TOKEN:?Set the relay token}
+      QUANTSELF_UMAMI_URL: http://umami:3000
+      QUANTSELF_UMAMI_WEBSITE_ID: ${QUANTSELF_UMAMI_WEBSITE_ID:?Set the Umami website ID}
+    init: true
+    restart: unless-stopped
+    depends_on:
+      - umami
+    networks:
+      default:
+      edge:
+        aliases:
+          - quantself-analytics-relay
+  retention:
+    image: postgres:18-alpine
+    environment:
+      PGHOST: postgres
+      PGUSER: umami
+      PGDATABASE: umami
+      PGPASSWORD: ${UMAMI_DB_PASSWORD:?Set UMAMI_DB_PASSWORD}
+      WEBSITE_ID: ${QUANTSELF_UMAMI_WEBSITE_ID:?Set the Umami website ID}
+    volumes:
+      - ./scripts/website-analytics/retention.sql:/maintenance/retention.sql:ro
+    command:
+      - sh
+      - -ec
+      - |
+        while true; do
+          psql -v website_id="$$WEBSITE_ID" -f /maintenance/retention.sql
+          sleep 3600
+        done
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+networks:
+  edge:
+    external: true
+    name: girke-edge

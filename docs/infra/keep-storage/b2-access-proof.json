@@ -1,0 +1,41 @@
+{
+  "observedDateUtc": "2026-11-14",
+  "bucket": "withheld",
+  "bucketId": "withheld",
+  "endpoint": "https://s3.ca-east-006.backblazeb2.com",
+  "region": "Canada East (Toronto)",
+  "private": true,
+  "hiddenVersionRetentionDays": 30,
+  "runId": "d0cd2fa0b2c9433eaa7f311b9554ebed",
+  "syntheticOnly": true,
+  "roles": {
+    "quantself": {
+      "seed": "passed",
+      "verify": "passed"
+    },
+    "vault": {
+      "seed": "passed",
+      "verify": "passed"
+    }
+  },
+  "checks": [
+    "Exact five uploader capabilities; one bucket and assigned prefix",
+    "Native own-prefix upload/read/list controls and peer-prefix read/write denial",
+    "Hide marker leaves original version readable; permanent Native deletion denied",
+    "Signed S3 own-prefix GET/PUT/list controls and peer GET/PUT/list AccessDenied",
+    "Signed S3 fixture version returned by ListObjectVersions remains readable after denied permanent DELETE",
+    "restic 0.19.1 initialized isolated synthetic repository, backed up, checked all data, restored exact fixture bytes",
+    "S3 restic lock cleanup produced hide markers, without permanent version deletion"
+  ],
+  "limits": [
+    "Primary repository initialization is recorded per role below; coordinated database/Vault recovery pair still pending",
+    "Hidden version read by ID verified; full recovery of a damaged repository view still pending",
+    "Probe objects remain under both _verify prefixes for separately approved cleanup",
+    "Bucket server-side encryption is distinct from the verified restic client-side encryption",
+    "No backup timer or production migration enabled"
+  ],
+  "primaryRepositories": {
+    "vault": "b9fbf83d91e00e01bb42ef91e57028276ce0adabb3908b59c0f63472a1fafde1",
+    "quantself": "8d69798ecf68502e119f6e0cc89b2306a1460786783da02e5c8a2bb303f92418"
+  }
+}

@@ -1,0 +1,74 @@
+model WorkSession {
+  id                String           @id @default(cuid())
+  startedAt         DateTime
+  endedAt           DateTime?
+  mode              WorkSessionMode  @default(UNSPECIFIED)
+  source            EntrySource      @default(MANUAL)
+  location          SessionLocation?
+  outcome           String?
+  productivityScore Int?
+  exhaustionScore   Int?
+  notes             String?
+  metadata          Json?
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+
+  @@index([startedAt])
+  @@index([source, startedAt])
+  @@index([mode, startedAt])
+  @@index([location, startedAt])
+  @@map("work_session")
+}
+
+model RecoverySession {
+  id        String              @id @default(cuid())
+  startedAt DateTime
+  endedAt   DateTime?
+  mode      RecoverySessionMode
+  source    EntrySource         @default(MANUAL)
+  location  SessionLocation?
+  notes     String?
+  metadata  Json?
+  createdAt DateTime            @default(now())
+  updatedAt DateTime            @updatedAt
+
+  @@index([startedAt])
+  @@index([source, startedAt])
+  @@index([mode, startedAt])
+  @@index([location, startedAt])
+  @@map("recovery_session")
+}
+
+enum EntrySource {
+  MANUAL
+  TIMER
+  IMPORT
+  OTHER
+}
+
+enum SessionLocation {
+  DESK
+  STANDING
+  TV
+  OUTSIDE
+  OTHER
+}
+
+enum WorkSessionMode {
+  UNSPECIFIED
+  DEEP_WORK
+  ADMIN
+  REVIEW
+  PLANNING
+  LEARNING
+  OTHER
+}
+
+enum RecoverySessionMode {
+  STILLNESS
+  BREATHING
+  MOVEMENT
+  FOOD_WATER
+  OUTSIDE_WALK
+  OTHER
+}

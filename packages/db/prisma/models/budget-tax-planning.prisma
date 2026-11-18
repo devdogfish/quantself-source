@@ -1,0 +1,143 @@
+/// Historical records retained for recovery and an explicit import into the current tax plan.
+model BudgetTaxEntryArchive {
+  ownerId   String
+  year      Int
+  id        String
+  revision  Int    @default(1)
+  commandId String
+  entry     Json
+
+  @@id([ownerId, year, id])
+  @@map("budget_tax_entry_archive")
+}
+
+model BudgetTaxRules {
+  ownerId              String
+  year                 Int
+  revision             Int
+  commandId            String
+  bands                Json
+  creditRate           Float
+  baselineCreditsCents Int
+  medicalFloorRate     Float
+  medicalFloorCapCents Int
+
+  @@id([ownerId, year])
+  @@map("budget_tax_rules")
+}
+
+enum BudgetTaxMoneyKind {
+  income
+  withheld
+}
+
+model BudgetTaxMoneyLine {
+  ownerId   String
+  year      Int
+  kind      BudgetTaxMoneyKind
+  id        String
+  revision  Int
+  commandId String
+  label     String
+  note      String
+  cents     Int
+  createdAt DateTime @default(now())
+
+  @@id([ownerId, year, kind, id])
+  @@map("budget_tax_money_line")
+}
+
+enum BudgetTaxCertainty {
+  confirmed
+  likely
+  uncertain
+}
+
+enum BudgetTaxTreatment {
+  deduction
+  credit
+  medicalCredit
+}
+
+model BudgetTaxClaim {
+  ownerId     String
+  year        Int
+  id          String
+  revision    Int
+  commandId   String
+  title       String
+  certainty   BudgetTaxCertainty
+  treatment   BudgetTaxTreatment
+  amountCents Int
+  note        String
+  createdAt   DateTime @default(now())
+  items       BudgetTaxItem[]
+
+  @@id([ownerId, year, id])
+  @@map("budget_tax_claim")
+}
+
+enum BudgetTaxItemType {
+  Income
+  Deduction
+  Credit
+  Payment
+}
+
+model BudgetTaxItem {
+  ownerId           String
+  year              Int
+  id                String
+  revision          Int
+  commandId         String
+  title             String
+  type              BudgetTaxItemType
+  amountCents       Int
+  claimId           String?
+  claim             BudgetTaxClaim? @relation(fields: [ownerId, year, claimId], references: [ownerId, year, id], onDelete: Restrict)
+  links             Json
+  createdAt         DateTime @default(now())
+  documentsToGather BudgetTaxGatherDocument[]
+
+  @@id([ownerId, year, id])
+  @@index([ownerId, year, claimId])
+  @@map("budget_tax_item")
+}
+
+enum BudgetTaxGatherStatus {
+  ToGather @map("To gather")
+  Requested
+}
+
+model BudgetTaxGatherDocument {
+  ownerId   String
+  year      Int
+  id        String
+  revision  Int
+  commandId String
+  name      String
+  itemId    String
+  item      BudgetTaxItem @relation(fields: [ownerId, year, itemId], references: [ownerId, year, id], onDelete: Restrict)
+  where     String
+  dueDate   String
+  status    BudgetTaxGatherStatus
+  createdAt DateTime @default(now())
+
+  @@id([ownerId, year, id])
+  @@index([ownerId, year, itemId])
+  @@map("budget_tax_gather_document")
+}
+
+model BudgetTaxCommand {
+  ownerId     String
+  year        Int
+  commandId   String
+  fingerprint String
+  kind        String
+  recordId    String
+  revision    Int
+
+  @@id([ownerId, year, commandId])
+  @@index([ownerId, year, kind, recordId, revision])
+  @@map("budget_tax_command")
+}

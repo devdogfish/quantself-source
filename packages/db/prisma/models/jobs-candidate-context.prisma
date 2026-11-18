@@ -1,0 +1,7 @@
+model JobCandidateContext {
+  ownerId  String @id
+  markdown String
+  version  Int
+
+  @@map("job_candidate_context")
+}

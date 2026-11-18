@@ -1,0 +1,8 @@
+[Unit]
+Description=Refresh the Vaultwarden guest home WAN block
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/python3 -I /etc/vaultwarden-2549/refresh-home-wan.py

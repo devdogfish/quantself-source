@@ -1,0 +1,13 @@
+[Unit]
+Description=Quantself private Atlas release socket
+
+[Socket]
+ListenStream=/run/quantself-atlas-deploy.sock
+SocketUser=deploy-atlas
+SocketMode=0600
+Accept=yes
+MaxConnections=1
+RemoveOnStop=yes
+
+[Install]
+WantedBy=sockets.target

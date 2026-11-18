@@ -1,0 +1,8 @@
+[Unit]
+Description=Volatile encrypted credential input for the Atlas browser
+
+[Mount]
+What=tmpfs
+Where=/run/quantself-roundcube-inputs
+Type=tmpfs
+Options=mode=0700,noswap,nosuid,nodev,noexec,size=64k

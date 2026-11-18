@@ -1,0 +1,10 @@
+[Unit]
+Description=Daily disposable Roundcube security-release qualification
+
+[Timer]
+OnCalendar=*-*-* 05:00:00 America/Halifax
+Persistent=yes
+Unit=quantself-roundcube-qualification.service
+
+[Install]
+WantedBy=timers.target

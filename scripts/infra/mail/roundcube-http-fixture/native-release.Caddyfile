@@ -1,0 +1,21 @@
+{
+	admin off
+	auto_https off
+}
+
+https://roundcube.jobs.example.test {
+	tls /fixture-tls/roundcube.crt /fixture-tls/roundcube.key
+	@frozen expression `"{$QS_ROUNDCUBE_ACTIVE_UPSTREAM}" == "freeze"`
+	handle @frozen {
+		header Retry-After 5
+		respond "Roundcube update in progress" 503
+	}
+	handle {
+		reverse_proxy {$QS_ROUNDCUBE_ACTIVE_UPSTREAM}:80
+	}
+}
+
+https://roundcube.jobs.example.test:8443 {
+	tls /fixture-tls/roundcube.crt /fixture-tls/roundcube.key
+	reverse_proxy roundcube-candidate:80
+}

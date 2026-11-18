@@ -1,0 +1,10 @@
+#!/bin/sh
+# Forced command for the dedicated Atlas receipt reader key.
+set -eu
+
+if [ "${SSH_ORIGINAL_COMMAND:-}" != "keep-backup-receipt" ]; then
+    echo "Only the Keep backup receipt command is allowed." >&2
+    exit 1
+fi
+
+exec /usr/bin/sudo -n /usr/bin/python3 -B /usr/local/lib/keep-backup/atlas_keep_receipt_handoff.py export

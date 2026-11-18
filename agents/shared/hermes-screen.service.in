@@ -1,0 +1,19 @@
+[Unit]
+Description=Hermes Agent screen
+Wants=network-online.target
+After=network-online.target tailscaled.service
+StartLimitIntervalSec=0
+
+[Service]
+User=hermes
+EnvironmentFile=/etc/hermes/.env
+Environment="HERMES_HOME=@profile@"
+Environment="DISPLAY=:99"
+Environment="XAUTHORITY=/run/quantself-agent-screen/Xauthority"
+RuntimeDirectory=quantself-agent-screen
+RuntimeDirectoryMode=0700
+ExecStart=/usr/local/libexec/quantself-agent/screen.py
+Restart=always
+RestartSec=5
+UMask=0077
+NoNewPrivileges=true

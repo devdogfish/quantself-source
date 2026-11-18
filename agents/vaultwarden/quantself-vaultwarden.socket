@@ -1,0 +1,12 @@
+[Unit]
+Description=Local Quantself Agent Vaultwarden socket
+
+[Socket]
+ListenStream=/run/quantself-vaultwarden.sock
+SocketUser=hermes
+SocketMode=0600
+Backlog=16
+RemoveOnStop=yes
+
+[Install]
+WantedBy=sockets.target

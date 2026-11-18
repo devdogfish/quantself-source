@@ -1,0 +1,26 @@
+.root { position: relative; }
+.locationInput { max-height: none; overflow: hidden; overflow-wrap: anywhere; white-space: pre-wrap; }
+.suggestions {
+  width: max(260px, var(--reference-width, 0px));
+  max-width: min(360px, calc(100vw - 24px));
+  max-height: min(320px, var(--available-height, 320px));
+  padding: 5px; gap: 0; overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--chakra-colors-fg) 18%, transparent);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--chakra-colors-bg-panel) 94%, var(--chakra-colors-fg));
+  box-shadow: 0 8px 24px #0003, 0 2px 5px #0001, inset 0 1px 0 #ffffff18;
+}
+.heading { flex: none; padding: 3px 8px 5px; font-size: 11px; font-weight: 500; color: var(--chakra-colors-fg-muted); }
+.results { min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
+.option { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 5px; cursor: pointer; }
+.option:hover, .option[aria-selected="true"] { background: Highlight; color: HighlightText; }
+.pin { width: 14px; height: 14px; flex-shrink: 0; color: var(--chakra-colors-fg-muted); }
+.place { display: flex; flex-direction: column; min-width: 0; gap: 1px; }
+.name { font-size: 13px; font-weight: 500; line-height: 1.4; overflow-wrap: anywhere; }
+.address { font-size: 11px; color: var(--chakra-colors-fg-muted); line-height: 1.35; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.option:hover .pin, .option[aria-selected="true"] .pin,
+.option:hover .address, .option[aria-selected="true"] .address { color: inherit; }
+.status { padding: 10px; font-size: 12px; color: var(--chakra-colors-fg-muted); }
+.attribution { flex: none; padding: 5px 8px 1px; margin-top: 4px; border-top: 1px solid color-mix(in srgb, var(--chakra-colors-fg) 10%, transparent); font-size: 10px; color: var(--chakra-colors-fg-muted); }
+.attribution a:hover { text-decoration: underline; }
+.error { padding-top: 4px; font-size: 12px; color: var(--chakra-colors-fg-error); }

@@ -1,0 +1,44 @@
+services:
+  roundcube:
+    image: docker.io/roundcube/roundcubemail@sha256:37a90cb245228080779462fd120db3d64335e1abbec33bda94ca18c9e163881b
+    entrypoint: ["/bin/sh", "/native-fixture/serve-native-release.sh"]
+    command: []
+    environment:
+      QS_ROUNDCUBE_FIXTURE_RELEASE: "${QS_ROUNDCUBE_FIXTURE_NATIVE_PRIOR:?}"
+      QS_ROUNDCUBE_FIXTURE_NATIVE_PRIOR: "${QS_ROUNDCUBE_FIXTURE_NATIVE_PRIOR:?}"
+      QS_ROUNDCUBE_FIXTURE_NATIVE_CANDIDATE: "${QS_ROUNDCUBE_FIXTURE_NATIVE_CANDIDATE:?}"
+    tmpfs:
+      - "/tmp:size=32m,mode=1777"
+    volumes: !override
+      - ${QS_ROUNDCUBE_FIXTURE_STATE:?}/native-releases:/native-releases:ro
+      - ./serve-native-release.sh:/native-fixture/serve-native-release.sh:ro
+      - ./package-config.php:/native-fixture/package-config.php:ro
+      - ${QS_ROUNDCUBE_FIXTURE_STATE:?}/public.key:/package-input/public.key:ro
+      - ${QS_ROUNDCUBE_FIXTURE_STATE:?}/imap.crt:/package-input/imap.crt:ro
+      - native-runtime:/native-runtime
+  roundcube-candidate:
+    extends:
+      service: roundcube
+    environment:
+      QS_ROUNDCUBE_FIXTURE_RELEASE: "${QS_ROUNDCUBE_FIXTURE_NATIVE_CANDIDATE:?}"
+      QS_ROUNDCUBE_FIXTURE_PACKAGE: "${QS_ROUNDCUBE_CANDIDATE_PACKAGE:-1}"
+    volumes:
+      - candidate-runtime:/native-runtime
+  roundcube-snapshot:
+    extends:
+      service: roundcube
+    command: ["snapshot"]
+    volumes:
+      - candidate-runtime:/candidate-runtime
+      - ./native-runtime-proof.php:/native-fixture/native-runtime-proof.php:ro
+  edge:
+    environment:
+      QS_ROUNDCUBE_ACTIVE_UPSTREAM: "${QS_ROUNDCUBE_ACTIVE_UPSTREAM:-roundcube}"
+    volumes:
+      - ./native-release.Caddyfile:/etc/caddy/Caddyfile:ro
+  http-proof:
+    environment:
+      QS_ROUNDCUBE_FIXTURE_RELEASE: "${QS_ROUNDCUBE_FIXTURE_NATIVE_PRIOR:?}"
+volumes:
+  native-runtime:
+  candidate-runtime:

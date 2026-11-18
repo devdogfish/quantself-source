@@ -1,0 +1,19 @@
+{
+  "status": "verified",
+  "scope": "disposable synthetic B2 repository",
+  "prefix": "vault/_verify/hidden-20261114-7f3d9a8c/hidden-recovery/",
+  "mappedVersions": 6,
+  "afterPagedPages": 4,
+  "afterRows": 8,
+  "bytesReconstructed": 1853,
+  "fixtureSha256": "e9a064845c9e01ec7a701fcd812e50f2c04a0dcc6dad677bf6b5bf7d830ae588",
+  "mapSha256": "cb29560b75f181ae1fa058ee6691cba468c7da8b9ca703a167f41ebe501c3fbc",
+  "xattrVerified": true,
+  "damagedRestore": {
+    "exitCode": 1,
+    "invalidIndexEvidence": true
+  },
+  "reconstructedRepositoryCheckReadData": "passed",
+  "localRestoreVerify": "passed",
+  "continuationExitCode": 0
+}

@@ -1,0 +1,430 @@
+{
+  "name": "Quantself Jobs one-posting pilot",
+  "active": false,
+  "nodes": [
+    {
+      "id": "13274d5c-a385-4e9f-8c8e-79b8e0180cd0",
+      "name": "Manual trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {}
+    },
+    {
+      "id": "66fb901c-526f-499f-8520-700b509048f4",
+      "name": "Pilot configuration",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        220,
+        0
+      ],
+      "parameters": {
+        "jsCode": "const config = {\"gatewayOrigin\":\"\",\"permitId\":\"\",\"sourceIdentity\":\"\"};\nconst { gatewayOrigin, permitId, sourceIdentity } = config;\nif (!/^(?:https:\\/\\/[a-z\\d-]+(?:\\.[a-z\\d-]+)+(?::\\d{1,5})?|http:\\/\\/127\\.0\\.0\\.1:\\d{1,5})$/i.test(gatewayOrigin) ||\n    !/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/i.test(permitId) ||\n    !/^greenhouse:global:[a-z0-9_-]{1,120}:[1-9][0-9]{0,15}$/.test(sourceIdentity)) {\n  throw new Error('Configure the inactive pilot with its private gateway, exact permit, and one Greenhouse posting.');\n}\nreturn [{ json: { ...config, body: { sourceIdentity } } }];"
+      }
+    },
+    {
+      "id": "e0415e14-145b-4895-80bc-f62dd6a9e31e",
+      "name": "Screen permitted posting",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        440,
+        0
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Pilot configuration').first().json.gatewayOrigin + '/screen' }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Jobs-Pilot-Permit",
+              "value": "={{ $('Pilot configuration').first().json.permitId }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.body) }}",
+        "options": {
+          "timeout": 55000,
+          "redirect": {
+            "redirect": {
+              "followRedirects": false
+            }
+          },
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true,
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "id": "4fddf4ad-d60c-41a6-80c0-7f8b88e3f430",
+      "name": "Prepare held intake",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        660,
+        0
+      ],
+      "parameters": {
+        "jsCode": "const response = $input.first().json;\nconst { permitId, sourceIdentity } = $('Pilot configuration').first().json;\nconst application = response.body?.application;\nconst kept = response.statusCode === 200 && response.body?.outcome === 'keep' && application?.sourceIdentity === sourceIdentity;\nreturn [{ json: { kept, screenStatus: response.statusCode ?? null,\n  screening: kept ? 'keep' : response.statusCode === 200 && response.body?.outcome === 'no_import' ? 'no_import' : 'blocked',\n  ...(kept && { idempotencyKey: 'n8n-jobs-pilot-' + permitId, body: { applications: [application] } }),\n} }];"
+      }
+    },
+    {
+      "id": "d2792b31-7149-42e6-805c-eb52f305c451",
+      "name": "Import approved keep?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        880,
+        0
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "kept",
+              "leftValue": "={{ $json.kept === true }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "28e20564-1d0d-4e09-8e3d-cfbaa192293e",
+      "name": "Import held draft",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1100,
+        -120
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Pilot configuration').first().json.gatewayOrigin + '/held-import' }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Jobs-Pilot-Permit",
+              "value": "={{ $('Pilot configuration').first().json.permitId }}"
+            },
+            {
+              "name": "Idempotency-Key",
+              "value": "={{ $json.idempotencyKey }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.body) }}",
+        "options": {
+          "timeout": 20000,
+          "redirect": {
+            "redirect": {
+              "followRedirects": false
+            }
+          },
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true,
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "id": "040b87b7-5793-4ab7-862e-83be68c5ad81",
+      "name": "Check intake response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1320,
+        -120
+      ],
+      "parameters": {
+        "jsCode": "function compactImportResponse(response) {\n  const statusCode = Number.isInteger(response?.statusCode) ? response.statusCode : null, body = response?.body;\n  return {\n    statusCode,\n    body: typeof body === \"object\" && body !== null ? {\n      imported: body.imported ?? null,\n      duplicates: body.duplicates ?? null,\n      idempotencyConflict: body.message === \"Idempotency-Key was already used with different input.\"\n    } : {}\n  };\n}\n\nfunction isRetryableImport(response) {\n  const { statusCode, body } = response;\n  return statusCode === null || statusCode === 409 && !body.idempotencyConflict || statusCode >= 500 && statusCode <= 599;\n}\n\nfunction readPilotImport(response) {\n  const compact = compactImportResponse(response), { applicationId, revision } = response.body ?? {};\n  if (compact.statusCode === 200 && /^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/.test(applicationId) && revision === 0)\n    return { ...compact, applicationId, revision };\n  return compact;\n}\nconst response = readPilotImport($input.first().json);\nconst request = $('Prepare held intake').first().json;\nreturn [{ json: { ...request, response, retry: isRetryableImport(response) } }];"
+      }
+    },
+    {
+      "id": "a00e94a2-1114-4d17-831f-bd1aa565ec97",
+      "name": "Retry intake?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1540,
+        -120
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "retry",
+              "leftValue": "={{ $json.retry === true }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "9e453404-6dc4-4910-8871-aadc8fa16186",
+      "name": "Pause before retry",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1760,
+        -220
+      ],
+      "parameters": {
+        "resume": "timeInterval",
+        "amount": 3,
+        "unit": "seconds"
+      }
+    },
+    {
+      "id": "ce9120c7-5d17-4631-8280-da0e1b74a61d",
+      "name": "Retry held draft",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1980,
+        -220
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Pilot configuration').first().json.gatewayOrigin + '/held-import' }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Jobs-Pilot-Permit",
+              "value": "={{ $('Pilot configuration').first().json.permitId }}"
+            },
+            {
+              "name": "Idempotency-Key",
+              "value": "={{ $json.idempotencyKey }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.body) }}",
+        "options": {
+          "timeout": 20000,
+          "redirect": {
+            "redirect": {
+              "followRedirects": false
+            }
+          },
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true,
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "id": "ad89c797-aae5-4d39-8d3b-b5cab82d10be",
+      "name": "Record run",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2200,
+        0
+      ],
+      "parameters": {
+        "jsCode": "function compactImportResponse(response) {\n  const statusCode = Number.isInteger(response?.statusCode) ? response.statusCode : null, body = response?.body;\n  return {\n    statusCode,\n    body: typeof body === \"object\" && body !== null ? {\n      imported: body.imported ?? null,\n      duplicates: body.duplicates ?? null,\n      idempotencyConflict: body.message === \"Idempotency-Key was already used with different input.\"\n    } : {}\n  };\n}\n\nfunction isRetryableImport(response) {\n  const { statusCode, body } = response;\n  return statusCode === null || statusCode === 409 && !body.idempotencyConflict || statusCode >= 500 && statusCode <= 599;\n}\n\nfunction readPilotImport(response) {\n  const compact = compactImportResponse(response), { applicationId, revision } = response.body ?? {};\n  if (compact.statusCode === 200 && /^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/.test(applicationId) && revision === 0)\n    return { ...compact, applicationId, revision };\n  return compact;\n}\nconst plan = $('Prepare held intake').first().json;\nconst { sourceIdentity } = $('Pilot configuration').first().json;\nconst retried = $('Retry held draft').isExecuted;\nconst response = plan.kept ? (retried ? readPilotImport($input.first().json) : $input.first().json.response) : null;\nconst imported = response?.statusCode === 200 && response.applicationId !== undefined && response.body?.imported === 1 && response.body?.duplicates === 0;\nreturn [{ json: { executionId: String($execution.id), sourceIdentity, screening: plan.screening, screenStatus: plan.screenStatus,\n  imports: { imported: Number(imported), status: response?.statusCode ?? null, requests: plan.kept ? 1 + Number(retried) : 0, retryAttempts: Number(retried),\n    ...(imported && { applicationId: response.applicationId, revision: response.revision }) } } }];"
+      }
+    }
+  ],
+  "connections": {
+    "Manual trigger": {
+      "main": [
+        [
+          {
+            "node": "Pilot configuration",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pilot configuration": {
+      "main": [
+        [
+          {
+            "node": "Screen permitted posting",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Screen permitted posting": {
+      "main": [
+        [
+          {
+            "node": "Prepare held intake",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare held intake": {
+      "main": [
+        [
+          {
+            "node": "Import approved keep?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Import approved keep?": {
+      "main": [
+        [
+          {
+            "node": "Import held draft",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Record run",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Import held draft": {
+      "main": [
+        [
+          {
+            "node": "Check intake response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check intake response": {
+      "main": [
+        [
+          {
+            "node": "Retry intake?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Retry intake?": {
+      "main": [
+        [
+          {
+            "node": "Pause before retry",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Record run",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pause before retry": {
+      "main": [
+        [
+          {
+            "node": "Retry held draft",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Retry held draft": {
+      "main": [
+        [
+          {
+            "node": "Record run",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "America/Halifax",
+    "saveDataSuccessExecution": "none",
+    "saveDataErrorExecution": "none",
+    "saveManualExecutions": false,
+    "saveExecutionProgress": false
+  },
+  "pinData": {}
+}

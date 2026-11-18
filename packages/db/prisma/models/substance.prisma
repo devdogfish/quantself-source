@@ -1,0 +1,73 @@
+model Substance {
+  id        String            @id @default(cuid())
+  name      String            @unique
+  category  SubstanceCategory
+  notes     String?
+  metadata  Json?
+  isActive  Boolean           @default(true)
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+
+  intakes       SubstanceIntake[]
+  remedyProfile InventoryRemedyProfile?
+
+  @@index([category])
+  @@map("substance")
+}
+
+model SubstanceIntake {
+  id          String          @id @default(cuid())
+  substanceId String
+  mealId      String?
+  occurredAt  DateTime
+  amount      Float?
+  potency     String?
+  unit        String?
+  precision   IntakePrecision @default(ESTIMATED)
+  route       IntakeRoute?
+  rawText     String?
+  notes       String?
+  metadata    Json?
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  substance Substance @relation(fields: [substanceId], references: [id], onDelete: Restrict)
+  meal      Meal?     @relation(fields: [mealId], references: [id], onDelete: SetNull)
+
+  @@index([occurredAt])
+  @@index([substanceId, occurredAt])
+  @@index([mealId])
+  @@index([route])
+  @@map("substance_intake")
+}
+
+enum SubstanceCategory {
+  BEVERAGE
+  SUPPLEMENT
+  MEDICATION
+  ALCOHOL
+  CANNABIS
+  TOBACCO
+  DRUG
+  HOMEOPATHY
+  OTHER
+}
+
+enum IntakePrecision {
+  MEASURED
+  ESTIMATED
+  UNKNOWN
+}
+
+enum IntakeRoute {
+  DRINK
+  EAT
+  SWALLOW
+  SMOKE
+  VAPE
+  INHALE
+  SUBLINGUAL
+  TOPICAL
+  INJECTION
+  OTHER
+}

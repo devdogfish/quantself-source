@@ -1,0 +1,14 @@
+[Unit]
+Description=Sam's local Jobs inbox socket
+
+[Socket]
+ListenStream=/run/quantself-jobs-mail.sock
+SocketUser=root
+SocketGroup=hermes
+SocketMode=0660
+Accept=yes
+MaxConnections=2
+RemoveOnStop=yes
+
+[Install]
+WantedBy=sockets.target

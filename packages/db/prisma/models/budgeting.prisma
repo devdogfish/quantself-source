@@ -1,0 +1,123 @@
+model BudgetPlan {
+  ownerId  String @id
+  revision Int    @default(0)
+  note     String @default("")
+  plan     Json
+  proposal Json?
+
+  @@map("budget_plan")
+}
+
+enum BudgetReceiptScanProvenance {
+  upload_only
+  ocr_completed
+}
+
+model BudgetReceipt {
+  inventoryLinks BudgetInventoryLink[]
+  ownerId     String
+  id          String
+  createdAt   DateTime @default(now())
+  kind        String   @default("receipt")
+  title       String?
+  merchant    String   @default("")
+  date        String?
+  totalCents  Int?
+  currency    String?
+  invoiceNumber String?
+  dueDate     String?
+  amazonAsin  String?
+  lines       Json
+  originalKey String?
+  image       Bytes?
+  mime        String?
+  imageHash   String?
+  scanStatus  String
+  scanProvenance BudgetReceiptScanProvenance?
+  scanLeaseId String?
+  scanLeaseUntil DateTime?
+  expense     BudgetExpense?
+  documentSubscriptions BudgetSubscription[] @relation("BudgetSubscriptionDocument")
+
+  @@id([ownerId, id])
+  @@unique([ownerId, imageHash])
+  @@index([ownerId, createdAt, id])
+  @@index([ownerId, totalCents, date])
+  @@index([scanStatus, scanLeaseUntil, createdAt])
+  @@map("budget_receipt")
+}
+
+model BudgetExpense {
+  inventoryLinks BudgetInventoryLink[]
+  ownerId    String
+  id         String
+  createdAt  DateTime @default(now())
+  merchant   String
+  date       String
+  totalCents Int
+  foodCents  Int
+  category String?
+  allowance String?
+  reviewed Boolean @default(false)
+  originalAmountMinor Int?
+  originalFoodMinor Int?
+  originalCurrency String?
+  conversion Json?
+  receiptId  String?
+  billKey    String?
+  bankAccount String?
+  bankFlow String?
+  manualReceiptMatch Boolean @default(false)
+  subscriptionId String?
+  subscription BudgetSubscription? @relation(fields: [ownerId, subscriptionId], references: [ownerId, id], onDelete: Restrict)
+  receipt    BudgetReceipt? @relation(fields: [ownerId, receiptId], references: [ownerId, id], onDelete: Cascade)
+
+  @@id([ownerId, id])
+  @@unique([ownerId, receiptId])
+  @@unique([ownerId, billKey])
+  @@index([ownerId, date, id])
+  @@index([ownerId, subscriptionId])
+  @@index([ownerId, reviewed, date, id])
+  @@index([ownerId, totalCents, date])
+  @@map("budget_expense")
+}
+
+// A subscription is independent of the Budget Note and owns its dated terms.
+model BudgetSubscription {
+  ownerId String
+  id String
+  revision Int @default(1)
+  commandId String
+  name String
+  status String @default("active")
+  kind String @default("subscription")
+  category String @default("")
+  lastReviewed String?
+  documentId String?
+  document BudgetReceipt? @relation("BudgetSubscriptionDocument", fields: [ownerId, documentId], references: [ownerId, id], onDelete: Restrict)
+  planEntry Boolean @default(false)
+  stopsOn String?
+  websiteUrl String?
+  cancelUrl String?
+  logoKey String?
+  estimated Boolean @default(false)
+  terms Json
+  evidence String @default("")
+  sourceKey String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  expenses BudgetExpense[]
+
+  @@id([ownerId, id])
+  @@unique([ownerId, sourceKey])
+  @@index([ownerId, status])
+  @@index([ownerId, documentId])
+  @@map("budget_subscription")
+}
+
+// Public daily reference rates only; never personal transaction data.
+model BudgetFxRate {
+  key String @id
+  data Json
+  @@map("budget_fx_rate")
+}

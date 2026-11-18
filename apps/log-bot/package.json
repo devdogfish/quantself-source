@@ -1,0 +1,19 @@
+{
+  "name": "log-bot",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "bun run --watch src/index.ts",
+    "start": "bun run src/index.ts",
+    "build": "bun build src/index.ts --outdir dist --target node"
+  },
+  "dependencies": {
+    "@quantself/db": "*",
+    "grammy": "^1.35.0",
+    "dotenv": "^17.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "^25.3.2",
+    "typescript": "^5"
+  }
+}

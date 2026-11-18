@@ -1,0 +1,20 @@
+model TodoDelegation {
+  ownerId        String
+  todoId         String
+  repository     String
+  number         Int
+  delegateId     String?
+  delegateName   String?
+  revision       Int
+  handBack       Json?
+  ownerReply     Json?
+  accepted       Boolean   @default(false)
+  ownerEditedAt  DateTime?
+  pendingClosure Json?
+  assignedAt     DateTime?
+  lastActivityAt DateTime?
+
+  @@id([ownerId, todoId])
+  @@index([ownerId, delegateId, repository, number], map: "todo_delegation_agent_lookup_idx")
+  @@map("todo_delegation")
+}

@@ -1,0 +1,28 @@
+# Temporary Keep restore lab only. Load before attaching guest taps.
+# Requires named Owner approval for Keep firewall changes.
+# Never flush existing host, Docker, or Tailscale tables.
+table bridge keep_restore_l2 {
+    chain input {
+        type filter hook input priority -200; policy accept;
+        meta ibrname "vmbr254" counter drop
+    }
+    chain output {
+        type filter hook output priority -200; policy accept;
+        meta obrname "vmbr254" counter drop
+    }
+}
+table inet keep_restore_isolation {
+    chain input {
+        type filter hook input priority -10; policy accept;
+        iifname "vmbr254" counter drop
+    }
+    chain forward {
+        type filter hook forward priority -10; policy accept;
+        iifname "vmbr254" oifname != "vmbr254" counter drop
+        oifname "vmbr254" iifname != "vmbr254" counter drop
+    }
+    chain output {
+        type filter hook output priority -10; policy accept;
+        oifname "vmbr254" counter drop
+    }
+}

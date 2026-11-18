@@ -1,0 +1,19 @@
+table inet keep_restore_boundary {
+    chain input {
+        type filter hook input priority -10; policy drop;
+        iifname "lo" accept
+        ct state established,related accept
+    }
+    chain output {
+        type filter hook output priority -10; policy drop;
+        oifname { "lo", "br-restore254" } accept
+        ct state established,related accept
+    }
+    chain forward {
+        type filter hook forward priority -10; policy drop;
+        ct state established,related accept
+        iifname "br-restore254" oifname "br-restore254" accept
+        iifname "br-restore254" ip daddr 192.0.2.42 tcp dport 19443 accept
+        oifname "br-restore254" ip saddr 192.0.2.41 tcp dport 18443 ct status dnat ct original ip daddr 192.0.2.43 ct original proto-dst 18443 accept
+    }
+}

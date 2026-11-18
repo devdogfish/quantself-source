@@ -1,0 +1,7 @@
+# Habit definitions are owned by PostgreSQL
+
+Superseding ADR 0030's definition authority, the Habit Catalog owns stacks and habits in PostgreSQL so authorized clients can change the system atomically without editing YAML. Typed change commands validate a complete projection, compare an expected revision and append an immutable revision receipt; identical command IDs replay the original result, while changed reuse conflicts. Current stack/definition rows retain archived identities, and each receipt retains its resulting projection for coherent single-query reads and historical replay. Bulk writes avoid per-habit requests. Display-only text lives in `details` and is flattened into the existing projection interface.
+
+An explicit one-time import validates the existing habits.yaml and creates revision 1 without touching observations. New observations retain a catalog revision; old definition SHAs remain. Archiving a stack archives its contained habits. SYSTEM.md, playbook and reviews remain in the Habit System Repo; normal document reads request Contents read. The existing create-if-absent review writer still explicitly requests Contents write, preserving the review generator required by the spec. There is no habit-editing UI.
+
+The import preserves the declared projection, including existing stack cues. YAML envelope metadata (`version`, `timezone`) is not a definition and is excluded; local-day behavior remains America/Halifax.

@@ -1,0 +1,165 @@
+# Standalone deployment for a fresh Keep VM, consuming #253's runtime contract.
+# Run only after Owner secret setup. Never use this file for Hostinger cutover.
+name: keep-quantself
+
+x-app-image: &app-image
+  image: ${QUANTSELF_IMAGE:?Set the verified local application image ID}
+  platform: linux/amd64
+  pull_policy: never
+  init: true
+  security_opt:
+    - no-new-privileges:true
+  logging:
+    driver: json-file
+    options:
+      max-size: 10m
+      max-file: '3'
+
+x-database: &database
+  DATABASE_URL: ${DATABASE_URL:?Owner must configure the private database URL}
+
+x-auth: &auth
+  BETTER_AUTH_SECRET_FILE: /run/quantself/auth-secret
+  BETTER_AUTH_URL: "${KEEP_BETTER_AUTH_URL:?prepare the private Compose bundle}"
+  BETTER_AUTH_RP_ID: "${KEEP_BETTER_AUTH_RP_ID:?prepare the private Compose bundle}"
+  QUANTSELF_OWNER_EMAIL: ${QUANTSELF_OWNER_EMAIL:?Set the Owner login identity}
+  QUANTSELF_INSTANCE_NAME: Quantself Keep — private validation
+
+services:
+  auth-secret-init:
+    <<: *app-image
+    restart: 'no'
+    mem_limit: 128m
+    environment:
+      BETTER_AUTH_SECRET_FILE: /run/quantself/auth-secret
+    command: [bun, run, --cwd, packages/auth, 'auth-secret:init']
+    volumes:
+      - auth_secret:/run/quantself
+    networks: [internal]
+
+  migrate:
+    <<: *app-image
+    restart: 'no'
+    mem_limit: 512m
+    environment:
+      <<: *database
+      NODE_ENV: production
+    command: [bun, run, --cwd, packages/db, 'migrate:deploy-only']
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks: [internal]
+
+  app:
+    <<: *app-image
+    restart: unless-stopped
+    stop_grace_period: 15m
+    mem_limit: 1024m
+    environment:
+      <<: [*database, *auth]
+      NODE_ENV: production
+      NEXT_TELEMETRY_DISABLED: '1'
+      DEBUG: next:start-server
+      PORT: '3000'
+      HOSTNAME: 0.0.0.0
+      QUANTSELF_API_INTERNAL_URL: http://api:3001
+    volumes:
+      - auth_secret:/run/quantself:ro
+    depends_on:
+      auth-secret-init:
+        condition: service_completed_successfully
+      migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test: [CMD-SHELL, 'wget --quiet --output-document=/dev/null http://127.0.0.1:3000/']
+      interval: 10s
+      timeout: 5s
+      retries: 24
+      start_period: 20s
+    networks: [internal]
+
+  api:
+    <<: *app-image
+    restart: unless-stopped
+    mem_limit: 1536m
+    # Storage operations may take up to ten minutes. Backups must pause new
+    # writes and drain existing operations before stopping/snapshotting Vault.
+    stop_grace_period: 15m
+    environment:
+      <<: [*database, *auth]
+      NODE_ENV: production
+      API_PORT: '3001'
+      QUANTSELF_ORIGINALS_PROVIDER: opencloud
+      QUANTSELF_ORIGINALS_WRITE_PAUSED: ${QUANTSELF_ORIGINALS_WRITE_PAUSED:-0}
+      QUANTSELF_OPENCLOUD_URL: "${KEEP_OPENCLOUD_URL:?prepare the private Compose bundle}"
+      QUANTSELF_OPENCLOUD_SPACE_ID: ${QUANTSELF_OPENCLOUD_SPACE_ID:?Set the dedicated originals space ID}
+      QUANTSELF_OPENCLOUD_USERNAME: ${QUANTSELF_OPENCLOUD_USERNAME:?Set the non-admin app identity}
+      QUANTSELF_OPENCLOUD_TOKEN: ${QUANTSELF_OPENCLOUD_TOKEN:?Owner must supply the expiring app token}
+      QUANTSELF_TODO_CAPTURE_ROOT: /app/storage/todo-captures
+      QUANTSELF_PHONE_ENABLED: '0'
+    command: [bun, run, --cwd, apps/api, 'start:production']
+    volumes:
+      - auth_secret:/run/quantself:ro
+      # Capture JSON remains application state; original audio is in OpenCloud.
+      - captures:/app/storage/todo-captures
+    depends_on:
+      auth-secret-init:
+        condition: service_completed_successfully
+      migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test: [CMD-SHELL, 'wget --quiet --output-document=/dev/null http://127.0.0.1:3001/api/health']
+      interval: 10s
+      timeout: 5s
+      retries: 24
+      start_period: 10s
+    networks: [internal]
+
+  gateway:
+    image: caddy:2.11.4-alpine@sha256:6aeddd44c3078b0f9a35206472a11420648a79c184603ef95957d0a20044cb2b
+    platform: linux/amd64
+    restart: unless-stopped
+    mem_limit: 128m
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+    # Tailnet-only Tailscale Serve terminates trusted TLS on the VM.
+    ports:
+      - 127.0.0.1:3000:3000
+    depends_on:
+      app:
+        condition: service_healthy
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: [CMD-SHELL, 'wget --quiet --output-document=/dev/null http://127.0.0.1:3000/']
+      interval: 10s
+      timeout: 5s
+      retries: 12
+    networks: [internal]
+
+  postgres:
+    image: postgres:18-alpine@sha256:1018733457011bf88d81db98cf43aac6d5150afc18787dbe204771fedf80ff95
+    platform: linux/amd64
+    restart: unless-stopped
+    mem_limit: 512m
+    environment:
+      POSTGRES_USER: quantself
+      POSTGRES_DB: quantself
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Owner must configure the database password}
+    volumes:
+      - postgres:/var/lib/postgresql
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -U quantself -d quantself']
+      interval: 10s
+      timeout: 5s
+      retries: 12
+    networks: [internal]
+
+volumes:
+  auth_secret:
+  postgres:
+  captures:
+
+networks:
+  internal:
+    driver: bridge

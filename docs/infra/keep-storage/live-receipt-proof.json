@@ -1,0 +1,73 @@
+{
+  "observedDateUtc": "2026-11-14",
+  "environment": "private Keep validation, not Hostinger production",
+  "syntheticOnly": true,
+  "appImage": "sha256:fef4d9af7bce109e8b5c6245422df8e01f42af9a117bef8a0f976fb2b48b5530",
+  "receiptId": "7d76f27e-20cf-47ee-b0b3-9075c336bf74",
+  "upload": "Authenticated Owner browser, archive originals only, OCR disabled",
+  "scanStatus": "archived",
+  "originalKey": "original:receipt:owner:7d76f27e-20cf-47ee-b0b3-9075c336bf74",
+  "provider": "opencloud",
+  "spaceId": "d3a176a6-2f2a-49fe-9ead-159902b4c48f$36b7656a-8f4c-4d30-8fdd-2934394b7102",
+  "fileId": "d3a176a6-2f2a-49fe-9ead-159902b4c48f$36b7656a-8f4c-4d30-8fdd-2934394b7102!bf749910-0502-4259-9907-177562b169b3",
+  "pathHint": "Receipts/keep-storage-254-synthetic-receipt-824df06abf7aba149748cbdf0cefbd42.pdf",
+  "mime": "application/pdf",
+  "bytes": 792,
+  "sourceAndDownloadedSha256": "a2f3b23e9f1ef34f9a0c023a34421205242dd293e0468e8bf84178c4280a218f",
+  "ledgerState": "ready",
+  "inlineDatabaseImageBytes": null,
+  "restoreVerified": false,
+  "limits": [
+    "PDF uploaded through actual authenticated browser UI; image inserted through deployed adapter and rendered through authenticated UI",
+    "Image timings measure adapter upload and sequential full reads inside API container; not browser upload latency or cold-cache performance",
+    "Audio playback/seek, token rotation and scoped denials remain pending",
+    "No PBS/offsite backup or full recovery point exists yet"
+  ],
+  "imageReceipt": {
+    "syntheticOnly": true,
+    "receiptId": "cb117495-d376-4a39-a8a0-4437b0a03855",
+    "originalReference": "original:receipt:owner:cb117495-d376-4a39-a8a0-4437b0a03855",
+    "reusedReadyOriginal": false,
+    "sourceSha256": "617dde7b47140b8da416a5e1fff569bdb889b1f8181ed11c3dfbe947e75ecc86",
+    "uploadMs": 971,
+    "reads": [
+      {
+        "elapsedMs": 161,
+        "status": 200,
+        "bytes": 5763517
+      },
+      {
+        "elapsedMs": 159,
+        "status": 200,
+        "bytes": 5763517
+      }
+    ],
+    "requests": {
+      "upload": {
+        "PROPFIND": 2,
+        "MKCOL": 2,
+        "PUT": 1,
+        "MOVE": 1,
+        "GET": 1
+      },
+      "read1": {
+        "GET": 1
+      },
+      "read2": {
+        "GET": 1
+      }
+    },
+    "ledger": {
+      "provider": "opencloud",
+      "spaceId": "d3a176a6-2f2a-49fe-9ead-159902b4c48f$36b7656a-8f4c-4d30-8fdd-2934394b7102",
+      "fileId": "d3a176a6-2f2a-49fe-9ead-159902b4c48f$36b7656a-8f4c-4d30-8fdd-2934394b7102!38668c84-1a9b-4343-be1c-bece1d32c3db",
+      "pathHint": "Receipts/keep-storage-254-synthetic-receipt-24137165dec02e669312fef9774a63a4.png",
+      "bytes": 5763517,
+      "sha256": "617dde7b47140b8da416a5e1fff569bdb889b1f8181ed11c3dfbe947e75ecc86",
+      "state": "ready"
+    },
+    "scope": "Deployed adapter timings inside API container; not browser upload latency or backup recovery",
+    "originalRenderedInOwnerBrowser": true,
+    "browserUploadVerified": false
+  }
+}

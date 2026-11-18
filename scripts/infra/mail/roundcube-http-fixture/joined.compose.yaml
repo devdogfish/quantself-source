@@ -1,0 +1,42 @@
+services:
+  imap-fixture:
+    command: ["python", "-IBu", "/fixture/joined-observer.py"]
+    volumes:
+      - ../../../../agents/sam/jobs-mail:/fixture-repo/agents/sam/jobs-mail:ro
+      - ../../../../agents/vaultwarden/mail.py:/fixture-repo/agents/vaultwarden/mail.py:ro
+      - ${QS_ROUNDCUBE_FIXTURE_STATE:?}:/fixture-state
+      - observer:/run/quantself-roundcube-observer
+  postgres:
+    image: postgres@sha256:b0ba6f2b6290ae40c9aacf6cc72849a2954778fef88774e122131d4b3c3b5e5b
+    environment:
+      POSTGRES_USER: fixture
+      POSTGRES_DB: roundcube_joined_fixture
+      POSTGRES_HOST_AUTH_METHOD: trust
+    healthcheck:
+      test: ["CMD", "pg_isready", "-h", "127.0.0.1", "-U", "fixture", "-d", "roundcube_joined_fixture"]
+      interval: 1s
+      timeout: 2s
+      retries: 30
+  issue-owner-reference:
+    image: ${QS_ROUNDCUBE_JOINED_IMAGE:?}
+    environment:
+      DATABASE_URL: postgresql://fixture@postgres:5432/roundcube_joined_fixture
+      NODE_ENV: test
+      BETTER_AUTH_URL: http://127.0.0.1:3000
+      BETTER_AUTH_SECRET: synthetic-roundcube-fixture-only-credential
+      QS_ROUNDCUBE_FIXTURE_SPOOL: "${QS_ROUNDCUBE_FIXTURE_SPOOL:-0}"
+      QS_ROUNDCUBE_FIXTURE_SOURCE: "${QS_ROUNDCUBE_FIXTURE_SOURCE:-0}"
+    volumes:
+      - ${QS_ROUNDCUBE_FIXTURE_STATE:?}/source.tar:/fixture-source.tar:ro
+      - ${QS_ROUNDCUBE_FIXTURE_STATE:?}:/fixture-state
+      - observer:/run/quantself-roundcube-observer:ro
+    entrypoint: ["/bin/sh", "-ec"]
+    command:
+      - |
+        cd /app
+        tar -xf /fixture-source.tar
+        bun --no-env-file run --cwd packages/db migrate:deploy-only >/tmp/migrate.log 2>&1 || { cat /tmp/migrate.log; exit 1; }
+        bun --no-env-file run --cwd packages/db generate
+        bun --no-env-file scripts/infra/mail/roundcube-http-fixture/issue-owner-reference.ts
+volumes:
+  observer:

@@ -1,0 +1,9 @@
+# Appended to the shared Managed Scope policy by render.py.
+api_server:
+  enabled: true
+  extra:
+    model_name: sam
+
+browser:
+  cdp_url: @cdp_url@
+  use_real_profile: false

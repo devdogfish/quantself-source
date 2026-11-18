@@ -1,0 +1,54 @@
+name: keep-vault-restore-254
+services:
+  opencloud:
+    image: ${RESTORE_OPENCLOUD_IMAGE:?Set the audited OpenCloud image ID}
+    platform: linux/amd64
+    pull_policy: never
+    user: '1000:1000'
+    network_mode: host
+    restart: 'no'
+    mem_limit: 1536m
+    stop_grace_period: 90s
+    extra_hosts:
+      - files-restore.test:192.0.2.42
+    environment:
+      OC_URL: https://files-restore.test:19443
+      OC_INSECURE: 'false'
+      PROXY_TLS: 'false'
+      PROXY_HTTP_ADDR: 127.0.0.1:9200
+      PROXY_ENABLE_BASIC_AUTH: 'false'
+      IDM_CREATE_DEMO_USERS: 'false'
+      STORAGE_USERS_DRIVER: posix
+      SSL_CERT_FILE: /run/restore/ca.pem
+    volumes:
+      - type: bind
+        source: /srv/keep-restore-254/runtime/opencloud/config
+        target: /etc/opencloud
+        bind: {create_host_path: false}
+      - type: bind
+        source: /srv/keep-restore-254/runtime/opencloud/data
+        target: /var/lib/opencloud
+        bind: {create_host_path: false}
+      - type: bind
+        source: ./tls/ca.pem
+        target: /run/restore/ca.pem
+        read_only: true
+        bind: {create_host_path: false}
+  gateway:
+    image: ${RESTORE_VAULT_CADDY_IMAGE:?Set the audited Vault gateway image ID}
+    platform: linux/amd64
+    pull_policy: never
+    network_mode: host
+    restart: 'no'
+    mem_limit: 128m
+    volumes:
+      - type: bind
+        source: ./files.Caddyfile
+        target: /etc/caddy/Caddyfile
+        read_only: true
+        bind: {create_host_path: false}
+      - type: bind
+        source: ./tls
+        target: /run/restore/tls
+        read_only: true
+        bind: {create_host_path: false}

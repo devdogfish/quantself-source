@@ -1,0 +1,106 @@
+name: keep-restore-254
+x-app: &app
+  image: ${RESTORE_APP_IMAGE:?Set the audited app image ID}
+  platform: linux/amd64
+  pull_policy: never
+  init: true
+  restart: 'no'
+  stop_grace_period: 15m
+  security_opt: [no-new-privileges:true]
+  networks: [restore]
+x-app-env: &app-env
+  NODE_ENV: production
+  DATABASE_URL: ${RESTORE_FUNCTIONAL_DATABASE_URL:?Set the functional copy database URL}
+  BETTER_AUTH_SECRET_FILE: /run/quantself/auth-secret
+  BETTER_AUTH_URL: https://quantself-restore.test:18443
+  BETTER_AUTH_RP_ID: quantself-restore.test
+  QUANTSELF_OWNER_EMAIL: ${RESTORE_OWNER_EMAIL:?Set the test login identity}
+  QUANTSELF_INSTANCE_NAME: Quantself isolated restore
+x-auth-volume: &auth-volume
+  type: bind
+  source: /srv/keep-restore-254/runtime/auth-secret
+  target: /run/quantself/auth-secret
+  read_only: true
+  bind: {create_host_path: false}
+
+services:
+  postgres:
+    image: ${RESTORE_POSTGRES_IMAGE:?Set the audited PostgreSQL image ID}
+    platform: linux/amd64
+    pull_policy: never
+    restart: 'no'
+    mem_limit: 512m
+    environment:
+      POSTGRES_USER: quantself
+      POSTGRES_DB: quantself
+      POSTGRES_PASSWORD: ${RESTORE_POSTGRES_PASSWORD:?Set the isolated PostgreSQL password}
+    volumes:
+      - type: bind
+        source: /srv/keep-restore-254/runtime/postgres
+        target: /var/lib/postgresql
+        bind: {create_host_path: false}
+    networks: [restore]
+  app:
+    <<: *app
+    mem_limit: 1024m
+    environment:
+      <<: *app-env
+      NEXT_TELEMETRY_DISABLED: '1'
+      PORT: '3000'
+      HOSTNAME: 0.0.0.0
+      QUANTSELF_API_INTERNAL_URL: http://api:3001
+    command: [bun, run, --cwd, apps/web, start]
+    volumes: [*auth-volume]
+  api:
+    <<: *app
+    mem_limit: 1536m
+    command: [bun, run, --cwd, apps/api, 'start:production']
+    environment:
+      <<: *app-env
+      API_PORT: '3001'
+      NODE_EXTRA_CA_CERTS: /run/restore/ca.pem
+      QUANTSELF_PHONE_ENABLED: '0'
+      QUANTSELF_TODO_CAPTURE_ROOT: /app/storage/todo-captures
+      QUANTSELF_ORIGINALS_PROVIDER: opencloud
+      QUANTSELF_ORIGINALS_WRITE_PAUSED: ${RESTORE_ORIGINALS_WRITE_PAUSED:-1}
+      QUANTSELF_OPENCLOUD_URL: https://files-restore.test:19443
+      QUANTSELF_OPENCLOUD_SPACE_ID: ${RESTORE_ORIGINALS_SPACE_ID:?Set the audited Originals space ID}
+      QUANTSELF_OPENCLOUD_USERNAME: ${RESTORE_VAULT_USERNAME:?Set the isolated Vault identity}
+      QUANTSELF_OPENCLOUD_TOKEN: ${RESTORE_VAULT_TOKEN:?Set the new isolated Vault token}
+    extra_hosts:
+      - files-restore.test:192.0.2.42
+    volumes:
+      - *auth-volume
+      - type: bind
+        source: /srv/keep-restore-254/runtime/captures
+        target: /app/storage/todo-captures
+        bind: {create_host_path: false}
+      - type: bind
+        source: ./tls/ca.pem
+        target: /run/restore/ca.pem
+        read_only: true
+        bind: {create_host_path: false}
+  gateway:
+    image: ${RESTORE_APP_CADDY_IMAGE:?Set the audited Quantself gateway image ID}
+    platform: linux/amd64
+    pull_policy: never
+    restart: 'no'
+    mem_limit: 128m
+    ports: [192.0.2.43:18443:18443]
+    volumes:
+      - type: bind
+        source: ./quantself.Caddyfile
+        target: /etc/caddy/Caddyfile
+        read_only: true
+        bind: {create_host_path: false}
+      - type: bind
+        source: ./tls
+        target: /run/restore/tls
+        read_only: true
+        bind: {create_host_path: false}
+    networks: [restore]
+networks:
+  restore:
+    driver: bridge
+    driver_opts:
+      com.docker.network.bridge.name: br-restore254

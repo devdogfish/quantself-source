@@ -1,0 +1,356 @@
+{
+  "observedDateUtc": "2026-11-14",
+  "scope": "Read-only local passwd/group databases, standard sudoers includes and global effective sshd configuration on the four changed hosts",
+  "hosts": [
+    {
+      "authorized_key_files": [
+        {
+          "account": "root",
+          "bytes": 736,
+          "fingerprints": [
+            "SHA256:gHnjxLKTFyqke/TEiv09douCYQU7MP94MRLVQ5HNr0g"
+          ],
+          "fingerprints_verified": true,
+          "path": "/root/.ssh/authorized_keys"
+        },
+        {
+          "account": "devdogfish",
+          "bytes": 105,
+          "fingerprints": [
+            "SHA256:AT+ZOn7Far2zI7w+5D1m++CsbHezoWY18H3hSpW0A4c"
+          ],
+          "fingerprints_verified": true,
+          "path": "/home/devdogfish/.ssh/authorized_keys"
+        }
+      ],
+      "external_authorized_keys_command": false,
+      "host": "keep",
+      "human_uid_candidates": [
+        [
+          "ceph",
+          64045
+        ],
+        [
+          "devdogfish",
+          1000
+        ]
+      ],
+      "ssh_authentication": {
+        "kbdinteractiveauthentication": "no",
+        "passwordauthentication": "no",
+        "permitrootlogin": "no",
+        "pubkeyauthentication": "yes"
+      },
+      "sudo_grants": [
+        {
+          "all_commands": true,
+          "file": "/etc/sudoers",
+          "line": 47,
+          "nopasswd": false,
+          "subject": "root"
+        },
+        {
+          "all_commands": true,
+          "file": "/etc/sudoers",
+          "line": 50,
+          "nopasswd": false,
+          "subject": "%sudo"
+        },
+        {
+          "all_commands": true,
+          "file": "/etc/sudoers.d/90-bringup",
+          "line": 1,
+          "nopasswd": true,
+          "subject": "devdogfish"
+        }
+      ],
+      "sudo_include_directives": [
+        {
+          "file": "/etc/sudoers",
+          "line": 54,
+          "standard_directory": true
+        }
+      ],
+      "sudo_members": [
+        "devdogfish"
+      ],
+      "uid_zero": [
+        "root"
+      ]
+    },
+    {
+      "authorized_key_files": [
+        {
+          "account": "root",
+          "bytes": 0,
+          "fingerprints": [],
+          "fingerprints_verified": false,
+          "path": "/root/.ssh/authorized_keys"
+        },
+        {
+          "account": "devdogfish",
+          "bytes": 105,
+          "fingerprints": [
+            "SHA256:AT+ZOn7Far2zI7w+5D1m++CsbHezoWY18H3hSpW0A4c"
+          ],
+          "fingerprints_verified": true,
+          "path": "/home/devdogfish/.ssh/authorized_keys"
+        }
+      ],
+      "external_authorized_keys_command": false,
+      "host": "files",
+      "human_uid_candidates": [
+        [
+          "devdogfish",
+          1000
+        ]
+      ],
+      "ssh_authentication": {
+        "kbdinteractiveauthentication": "no",
+        "passwordauthentication": "no",
+        "permitrootlogin": "no",
+        "pubkeyauthentication": "yes"
+      },
+      "sudo_grants": [
+        {
+          "all_commands": true,
+          "file": "/etc/sudoers",
+          "line": 47,
+          "nopasswd": false,
+          "subject": "root"
+        },
+        {
+          "all_commands": true,
+          "file": "/etc/sudoers",
+          "line": 50,
+          "nopasswd": false,
+          "subject": "%sudo"
+        },
+        {
+          "all_commands": true,
+          "file": "/etc/sudoers.d/90-bringup",
+          "line": 1,
+          "nopasswd": true,
+          "subject": "devdogfish"
+        }
+      ],
+      "sudo_include_directives": [
+        {
+          "file": "/etc/sudoers",
+          "line": 54,
+          "standard_directory": true
+        }
+      ],
+      "sudo_members": [
+        "devdogfish"
+      ],
+      "uid_zero": [
+        "root"
+      ]
+    },
+    {
+      "authorized_key_files": [
+        {
+          "account": "root",
+          "bytes": 0,
+          "fingerprints": [],
+          "fingerprints_verified": false,
+          "path": "/root/.ssh/authorized_keys"
+        },
+        {
+          "account": "devdogfish",
+          "bytes": 105,
+          "fingerprints": [
+            "SHA256:AT+ZOn7Far2zI7w+5D1m++CsbHezoWY18H3hSpW0A4c"
+          ],
+          "fingerprints_verified": true,
+          "path": "/home/devdogfish/.ssh/authorized_keys"
+        }
+      ],
+      "external_authorized_keys_command": false,
+      "host": "quantself",
+      "human_uid_candidates": [
+        [
+          "devdogfish",
+          1000
+        ]
+      ],
+      "ssh_authentication": {
+        "kbdinteractiveauthentication": "no",
+        "passwordauthentication": "no",
+        "permitrootlogin": "no",
+        "pubkeyauthentication": "yes"
+      },
+      "sudo_grants": [
+        {
+          "all_commands": true,
+          "file": "/etc/sudoers",
+          "line": 47,
+          "nopasswd": false,
+          "subject": "root"
+        },
+        {
+          "all_commands": true,
+          "file": "/etc/sudoers",
+          "line": 50,
+          "nopasswd": false,
+          "subject": "%sudo"
+        },
+        {
+          "all_commands": true,
+          "file": "/etc/sudoers.d/90-bringup",
+          "line": 1,
+          "nopasswd": true,
+          "subject": "devdogfish"
+        }
+      ],
+      "sudo_include_directives": [
+        {
+          "file": "/etc/sudoers",
+          "line": 54,
+          "standard_directory": true
+        }
+      ],
+      "sudo_members": [
+        "devdogfish"
+      ],
+      "uid_zero": [
+        "root"
+      ]
+    },
+    {
+      "authorized_key_files": [
+        {
+          "account": "devdogfish",
+          "bytes": 105,
+          "fingerprints": [
+            "SHA256:AT+ZOn7Far2zI7w+5D1m++CsbHezoWY18H3hSpW0A4c"
+          ],
+          "fingerprints_verified": true,
+          "path": "/home/devdogfish/.ssh/authorized_keys"
+        }
+      ],
+      "external_authorized_keys_command": false,
+      "host": "backup",
+      "human_uid_candidates": [
+        [
+          "devdogfish",
+          1001
+        ]
+      ],
+      "ssh_authentication": {
+        "kbdinteractiveauthentication": "no",
+        "passwordauthentication": "no",
+        "permitrootlogin": "no",
+        "pubkeyauthentication": "yes"
+      },
+      "sudo_grants": [
+        {
+          "all_commands": true,
+          "file": "/etc/sudoers",
+          "line": 47,
+          "nopasswd": false,
+          "subject": "root"
+        },
+        {
+          "all_commands": true,
+          "file": "/etc/sudoers",
+          "line": 50,
+          "nopasswd": false,
+          "subject": "%sudo"
+        },
+        {
+          "all_commands": true,
+          "file": "/etc/sudoers.d/90-bringup",
+          "line": 1,
+          "nopasswd": true,
+          "subject": "devdogfish"
+        }
+      ],
+      "sudo_include_directives": [
+        {
+          "file": "/etc/sudoers",
+          "line": 54,
+          "standard_directory": true
+        }
+      ],
+      "sudo_members": [
+        "devdogfish"
+      ],
+      "uid_zero": [
+        "root"
+      ]
+    }
+  ],
+  "exceptions": {
+    "keep": {
+      "ceph": "UID 64045, Proxmox service account with /usr/sbin/nologin, retained explicitly in #218",
+      "rootKey": "authorized_keys resolves to /etc/pve/priv/authorized_keys; SHA256 matches /root/.ssh/id_rsa.pub; retained Proxmox system key documented in #218. Root SSH login remains disabled."
+    }
+  },
+  "closingRecheck": {
+    "observedDateUtc": "2026-11-14",
+    "observedUtcWindow": "17:34\u201317:35",
+    "host": "keep",
+    "verified": true,
+    "uidZeroAccounts": [
+      "root"
+    ],
+    "sudoMembers": [
+      "devdogfish"
+    ],
+    "humanUidCandidates": [
+      [
+        "ceph",
+        64045
+      ],
+      [
+        "devdogfish",
+        1000
+      ]
+    ],
+    "ownerAuthorizedKeyCount": 1,
+    "ownerKeyFingerprint": "SHA256:AT+ZOn7Far2zI7w+5D1m++CsbHezoWY18H3hSpW0A4c",
+    "proxmoxRootAuthorizedKeyCount": 1,
+    "proxmoxRootKeyFingerprint": "SHA256:gHnjxLKTFyqke/TEiv09douCYQU7MP94MRLVQ5HNr0g",
+    "proxmoxRootKeyAndSymlinkVerified": true,
+    "globalSshAuthentication": {
+      "permitrootlogin": "no",
+      "passwordauthentication": "no",
+      "kbdinteractiveauthentication": "no",
+      "pubkeyauthentication": "yes"
+    },
+    "externalAuthorizedKeysCommand": false,
+    "sudoGrantsMatchedPriorAudit": true,
+    "onlyStandardSudoersIncludeDirectory": true
+  },
+  "limitations": [
+    "sshd -T checks global settings; this audit does not independently enumerate Match-conditioned overrides.",
+    "90-bringup remains intentionally until #226."
+  ],
+  "closingGuestAndBackupRecheck": {
+    "observedDateUtc": "2026-11-14",
+    "hosts": [
+      "files",
+      "quantself",
+      "backup"
+    ],
+    "verified": true,
+    "ownerKeyFingerprint": "SHA256:AT+ZOn7Far2zI7w+5D1m++CsbHezoWY18H3hSpW0A4c",
+    "ownerAuthorizedKeyCountEach": 1,
+    "onlyHumanAccountAndSudoMember": "devdogfish",
+    "uidZeroAccounts": [
+      "root"
+    ],
+    "rootAuthorizedKeyCountEach": 0,
+    "globalSshAuthentication": {
+      "permitrootlogin": "no",
+      "passwordauthentication": "no",
+      "kbdinteractiveauthentication": "no",
+      "pubkeyauthentication": "yes"
+    },
+    "sudoGrantsMatchedPriorAudit": true,
+    "onlyStandardSudoersIncludeDirectory": true,
+    "externalAuthorizedKeysCommand": false
+  }
+}

@@ -1,0 +1,899 @@
+.editor-indent {
+  --lexical-indent-base-value: 32px;
+}
+
+::highlight(editor-find-match) {
+  background-color: rgb(250 204 21 / 0.4);
+  color: inherit;
+}
+
+::highlight(editor-find-match-current) {
+  background-color: rgb(249 115 22 / 0.6);
+  color: inherit;
+}
+
+@media (forced-colors: active) {
+  ::highlight(editor-find-match) {
+    background-color: Highlight;
+    color: HighlightText;
+    forced-color-adjust: none;
+  }
+
+  ::highlight(editor-find-match-current) {
+    background-color: Mark;
+    color: MarkText;
+    forced-color-adjust: none;
+  }
+}
+
+.editor-find-match-overlay {
+  position: absolute;
+  pointer-events: none;
+  background-color: rgb(250 204 21 / 0.4);
+}
+
+.editor-find-match-overlay-current {
+  background-color: rgb(249 115 22 / 0.6);
+}
+
+.editor-mark {
+  background-color: rgb(251 191 36 / 0.2);
+  border-bottom: 2px solid rgb(251 191 36 / 0.45);
+  padding-bottom: 1px;
+  cursor: pointer;
+}
+
+.editor-mark.selected {
+  background-color: rgb(251 191 36 / 0.45);
+  border-bottom-color: rgb(245 158 11);
+}
+
+.editor-mark-overlap {
+  background-color: rgb(251 191 36 / 0.35);
+}
+
+.editor-mark-overlap.selected {
+  background-color: rgb(251 191 36 / 0.6);
+}
+
+.editor-comment-highlight {
+  position: absolute;
+  pointer-events: none;
+  z-index: 5;
+  background-color: rgb(251 191 36 / 0.35);
+}
+
+.editor-code {
+  direction: ltr;
+  unicode-bidi: isolate;
+  background-color: var(--chakra-colors-bg-panel) !important;
+}
+
+.editor-code::before {
+  content: attr(data-gutter);
+  position: sticky;
+  inset-inline-start: 0;
+  top: 0;
+  float: left;
+  z-index: 1;
+  min-width: 1.75rem;
+  margin-inline-end: 1rem;
+  padding-inline: 0.5rem;
+  color: var(--chakra-colors-fg-muted);
+  text-align: right;
+  white-space: pre-wrap;
+  user-select: none;
+  background-color: var(--chakra-colors-bg-panel);
+}
+
+.editor-card [data-lexical-slot="title"] {
+  outline: none;
+  font-weight: 500;
+}
+
+.editor-card > *:not([data-lexical-slot]) {
+  color: var(--chakra-colors-fg-muted);
+}
+
+.editor-card [data-lexical-slot="title"] > p:has(br:only-child),
+.editor-card > p:only-of-type:has(br:only-child) {
+  position: relative;
+}
+
+.editor-card [data-lexical-slot="title"] > p:has(br:only-child)::before {
+  content: "Title";
+}
+
+.editor-card > p:only-of-type:has(br:only-child)::before {
+  content: "Body";
+}
+
+:lang(ar)
+  .editor-card
+  [data-lexical-slot="title"]
+  > p:has(br:only-child)::before {
+  content: "العنوان";
+}
+
+:lang(ar) .editor-card > p:only-of-type:has(br:only-child)::before {
+  content: "المحتوى";
+}
+
+:lang(he)
+  .editor-card
+  [data-lexical-slot="title"]
+  > p:has(br:only-child)::before {
+  content: "כותרת";
+}
+
+:lang(he) .editor-card > p:only-of-type:has(br:only-child)::before {
+  content: "תוכן";
+}
+
+.editor-card [data-lexical-slot="title"] > p:has(br:only-child)::before,
+.editor-card > p:only-of-type:has(br:only-child)::before {
+  position: absolute;
+  inset-inline-start: 0;
+  top: 0;
+  color: var(--chakra-colors-fg-muted);
+  opacity: 0.7;
+  pointer-events: none;
+  user-select: none;
+}
+
+.editor-ruby::after {
+  content: attr(data-ruby-annotation);
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  top: -0.75em;
+  font-size: 0.5em;
+  line-height: 1;
+  color: var(--chakra-colors-fg-muted);
+  pointer-events: none;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.editor-ruby-composing::after {
+  display: none;
+}
+
+.editor-review-children > p:only-of-type:has(br:only-child),
+.editor-review-author [data-lexical-slot="author"] > p:has(br:only-child) {
+  position: relative;
+}
+
+.editor-review-children > p:only-of-type:has(br:only-child)::before {
+  content: "Write a review…";
+}
+
+.editor-review-author
+  [data-lexical-slot="author"]
+  > p:has(br:only-child)::before {
+  content: "Author";
+}
+
+:lang(ar) .editor-review-children > p:only-of-type:has(br:only-child)::before {
+  content: "اكتب مراجعة…";
+}
+
+:lang(ar)
+  .editor-review-author
+  [data-lexical-slot="author"]
+  > p:has(br:only-child)::before {
+  content: "الكاتب";
+}
+
+:lang(he) .editor-review-children > p:only-of-type:has(br:only-child)::before {
+  content: "כתבו ביקורת…";
+}
+
+:lang(he)
+  .editor-review-author
+  [data-lexical-slot="author"]
+  > p:has(br:only-child)::before {
+  content: "מחבר";
+}
+
+.editor-review-children > p:only-of-type:has(br:only-child)::before,
+.editor-review-author
+  [data-lexical-slot="author"]
+  > p:has(br:only-child)::before {
+  position: absolute;
+  inset-inline-start: 0;
+  top: 0;
+  color: var(--chakra-colors-fg-muted);
+  opacity: 0.7;
+  pointer-events: none;
+  user-select: none;
+}
+
+.editor-collapsible > summary::marker,
+.editor-collapsible > summary::-webkit-details-marker {
+  display: none;
+}
+
+.editor-collapsible > summary::before {
+  content: "";
+  position: absolute;
+  inset-inline-start: 0.5rem;
+  top: 50%;
+  width: 1rem;
+  height: 1rem;
+  background-color: var(--chakra-colors-fg-muted);
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m9 18 6-6-6-6'/%3E%3C/svg%3E");
+  mask-size: 100% 100%;
+  transform: translateY(-50%);
+  transition: transform 0.2s ease;
+}
+
+[dir="rtl"] .editor-collapsible > summary::before {
+  transform: translateY(-50%) rotate(180deg);
+}
+
+.editor-collapsible[open] > summary::before,
+[dir="rtl"] .editor-collapsible[open] > summary::before {
+  transform: translateY(-50%) rotate(90deg);
+}
+
+.editor-collapsible-content {
+  interpolate-size: allow-keywords;
+  overflow: hidden;
+  transition:
+    height 0.2s ease-out,
+    padding 0.2s ease-out,
+    opacity 0.2s ease-out,
+    visibility 0.2s ease-out allow-discrete;
+}
+
+.editor-collapsible-content[hidden] {
+  content-visibility: visible;
+  display: block;
+  height: 0;
+  padding-block: 0;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition:
+    height 0.2s ease-in,
+    padding 0.2s ease-in,
+    opacity 0.2s ease-in,
+    visibility 0.2s ease-in allow-discrete;
+}
+
+details.editor-collapsible::details-content {
+  interpolate-size: allow-keywords;
+  overflow: hidden;
+  transition:
+    height 0.2s ease-out,
+    opacity 0.2s ease-out,
+    content-visibility 0.2s ease-out allow-discrete;
+}
+
+details.editor-collapsible:not([open])::details-content {
+  height: 0;
+  opacity: 0;
+  content-visibility: hidden;
+  transition:
+    height 0.2s ease-in,
+    opacity 0.2s ease-in,
+    content-visibility 0.2s ease-in allow-discrete;
+}
+
+.editor-table-scrollable-wrapper {
+  scrollbar-width: none;
+}
+
+.editor-table-scrollable-wrapper::-webkit-scrollbar {
+  display: none;
+}
+
+.editor-table-selection *::selection {
+  background-color: transparent;
+}
+
+[contenteditable]:focus-within .editor-table-selected {
+  outline: 2px solid var(--chakra-colors-brand-solid);
+  outline-offset: -2px;
+}
+
+.editor-table-cell-selected {
+  caret-color: transparent;
+}
+
+[contenteditable]:focus-within .editor-table-cell-selected::after {
+  position: absolute;
+  inset: 0;
+  background-color: var(--chakra-colors-brand-solid);
+  opacity: 0.2;
+  content: "";
+  pointer-events: none;
+}
+
+.editor-equation {
+  direction: ltr;
+  unicode-bidi: isolate;
+  cursor: default;
+  user-select: none;
+}
+
+span.editor-equation {
+  display: inline-block;
+}
+
+div.editor-equation {
+  display: block;
+  text-align: center;
+}
+
+.editor-equation.focused {
+  border-radius: var(--chakra-radii-sm);
+  outline: 2px solid var(--chakra-colors-brand-solid);
+  outline-offset: 2px;
+}
+
+.katex {
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+
+/* Lexical formatting, independent of Tailwind; colours follow Chakra light/dark and brand tokens. */
+.editor-root {
+  position: relative;
+  outline: none;
+}
+.editor-autocomplete {
+  color: var(--chakra-colors-fg-muted);
+  user-select: none;
+}
+.editor-character-limit {
+  display: inline;
+  background: var(--chakra-colors-bg-error);
+  color: var(--chakra-colors-fg-error);
+}
+.editor-ltr {
+  text-align: left;
+}
+.editor-rtl {
+  text-align: right;
+}
+.editor-paragraph {
+  position: relative;
+  margin: 0 0 0.5rem;
+}
+.editor-h1 {
+  position: relative;
+  margin: 1.5rem 0 0.75rem;
+  font-size: 2.25rem;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  scroll-margin-top: 5rem;
+}
+.editor-h2 {
+  position: relative;
+  margin: 1.5rem 0 0.75rem;
+  font-size: 1.875rem;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+  scroll-margin-top: 5rem;
+  border-bottom: 1px solid var(--chakra-colors-border);
+  padding-bottom: 0.5rem;
+}
+.editor-h3 {
+  position: relative;
+  margin: 1rem 0 0.5rem;
+  font-size: 1.5rem;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+  scroll-margin-top: 5rem;
+}
+.editor-h4 {
+  position: relative;
+  margin: 1rem 0 0.5rem;
+  font-size: 1.25rem;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+  scroll-margin-top: 5rem;
+}
+.editor-h5 {
+  position: relative;
+  margin: 0.75rem 0 0.5rem;
+  font-size: 1.125rem;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+  scroll-margin-top: 5rem;
+}
+.editor-h6 {
+  position: relative;
+  margin: 0.75rem 0 0.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+  scroll-margin-top: 5rem;
+}
+.editor-quote {
+  position: relative;
+  margin: 1rem 0;
+  border-inline-start: 2px solid var(--chakra-colors-border);
+  padding-inline-start: 1.5rem;
+  color: var(--chakra-colors-fg-muted);
+  font-style: italic;
+}
+.editor-checklist {
+  padding-inline-start: 0.25rem !important;
+}
+.editor-listitem {
+  position: relative;
+}
+.editor-listitem-checked {
+  position: relative;
+  list-style: none;
+  padding-inline-start: 1.5rem;
+  color: var(--chakra-colors-fg-muted);
+  text-decoration: line-through;
+  outline: none;
+}
+.editor-listitem-unchecked {
+  position: relative;
+  list-style: none;
+  padding-inline-start: 1.5rem;
+  outline: none;
+}
+.editor-listitem-nested {
+  list-style: none;
+}
+.editor-ol,
+.editor-ul {
+  margin: 0 0 0.5rem;
+  padding-inline-start: 1.5rem;
+}
+.editor-link {
+  cursor: pointer;
+  color: var(--chakra-colors-brand-fg);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.editor-hashtag {
+  border-radius: 0.25rem;
+  background: var(--chakra-colors-brand-subtle);
+  padding-inline: 0.125rem;
+  color: var(--chakra-colors-brand-fg);
+}
+.editor-ruby {
+  position: relative;
+  display: inline-block;
+  vertical-align: baseline;
+  line-height: 1.3;
+}
+.editor-special-text {
+  border-radius: 0.25rem;
+  background: var(--chakra-colors-bg-warning);
+  padding-inline: 0.25rem;
+  font-weight: 600;
+}
+.editor-bold {
+  font-weight: 700;
+}
+.editor-italic {
+  font-style: italic;
+}
+.editor-underline {
+  text-decoration: underline;
+}
+.editor-strikethrough {
+  text-decoration: line-through;
+}
+.editor-underline-strikethrough {
+  text-decoration-line: underline line-through;
+}
+.editor-inline-code {
+  border-radius: 0.25rem;
+  background: var(--chakra-colors-bg-muted);
+  padding: 0.125rem 0.375rem;
+  font-family: var(--chakra-fonts-mono);
+  font-size: 0.875em;
+}
+.editor-subscript {
+  vertical-align: sub;
+  font-size: 0.75rem;
+}
+.editor-superscript {
+  vertical-align: super;
+  font-size: 0.75rem;
+}
+.editor-highlight {
+  border-radius: 0.25rem;
+  background: var(--chakra-colors-bg-warning);
+}
+.editor-lowercase {
+  text-transform: lowercase;
+}
+.editor-uppercase {
+  text-transform: uppercase;
+}
+.editor-capitalize {
+  text-transform: capitalize;
+}
+.editor-card {
+  position: relative;
+  margin: 0.75rem 0;
+  display: grid;
+  width: 100%;
+  gap: 0.125rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--chakra-colors-border);
+  background: var(--chakra-colors-bg-panel);
+  padding: 0.5rem 0.625rem;
+  text-align: start;
+  font-size: 0.875rem;
+  color: var(--chakra-colors-fg);
+}
+.editor-code {
+  position: relative;
+  margin: 0 0 0.75rem;
+  display: block;
+  overflow-x: auto;
+  border-radius: 0.5rem;
+  border: 1px solid var(--chakra-colors-border);
+  background: var(--chakra-colors-bg-panel);
+  padding: 0.75rem 1rem 0.75rem 0;
+  font-family: var(--chakra-fonts-mono);
+  font-size: 0.8125rem;
+  line-height: 1.625;
+  tab-size: 2;
+  white-space: pre;
+}
+.editor-collapsible-container {
+  margin: 0.5rem 0;
+  width: 100%;
+  border-radius: 0.5rem;
+  border: 1px solid var(--chakra-colors-border);
+  background: var(--chakra-colors-bg-panel);
+  color: var(--chakra-colors-fg);
+}
+.editor-collapsible-title {
+  position: relative;
+  display: block;
+  cursor: pointer;
+  list-style: none;
+  border-radius: 0.5rem;
+  padding-block: 0.5rem;
+  padding-inline: 1.75rem 0.75rem;
+  text-align: start;
+  font-size: 0.875rem;
+  font-weight: 500;
+  outline: none;
+  user-select: none;
+}
+.editor-collapsible-content {
+  padding-block: 0 0.5rem;
+  padding-inline: 1.75rem 0.75rem;
+  font-size: 0.875rem;
+}
+.editor-inserted {
+  background: var(--chakra-colors-bg-success);
+  color: var(--chakra-colors-fg-success);
+}
+.editor-deleted {
+  background: var(--chakra-colors-bg-error);
+  color: var(--chakra-colors-fg-error);
+}
+.editor-review {
+  position: relative;
+  margin: 0.75rem 0;
+  border-radius: 0.5rem;
+  border: 1px solid var(--chakra-colors-border);
+  background: var(--chakra-colors-bg-panel);
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  color: var(--chakra-colors-fg);
+}
+.editor-pull-quote {
+  position: relative;
+  margin: 1rem 0;
+  border-radius: 0.375rem;
+  border-inline-start: 4px solid var(--chakra-colors-brand-solid);
+  background: var(--chakra-colors-bg-muted);
+  padding: 1rem 1.25rem;
+}
+.editor-base {
+  position: relative;
+  margin: 0.75rem 0;
+  user-select: none;
+}
+.editor-focus {
+  border-radius: 0.375rem;
+  outline: 2px solid var(--chakra-colors-brand-focus-ring);
+  outline-offset: 2px;
+}
+.editor-layout-container {
+  margin: 0.75rem 0;
+  display: grid;
+  gap: 1rem;
+}
+.editor-layout-item {
+  min-width: 0;
+  border-radius: 0.375rem;
+  border: 1px dashed var(--chakra-colors-border);
+  padding: 0.5rem;
+}
+.editor-table-scrollable-wrapper {
+  position: relative;
+  margin: 0.75rem 0;
+  width: 100%;
+  overflow-x: auto;
+}
+.editor-table {
+  width: 100%;
+  table-layout: fixed;
+  caption-side: bottom;
+  font-size: 0.875rem;
+  border-collapse: collapse;
+}
+.editor-table-row {
+  border-bottom: 1px solid var(--chakra-colors-border);
+}
+.editor-table-cell {
+  position: relative;
+  border: 1px solid var(--chakra-colors-border);
+  padding: 0.5rem;
+  text-align: start;
+  vertical-align: middle;
+  outline: none;
+}
+.editor-table-cell-header {
+  background: var(--chakra-colors-bg-muted);
+  text-align: start;
+  font-weight: 500;
+}
+.editor-center {
+  margin-inline: auto;
+}
+.editor-right {
+  margin-inline-start: auto;
+}
+.editor-h1-chat {
+  position: relative;
+  margin: 1rem 0 0.5rem;
+  font-size: 1.25rem;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+  scroll-margin-top: 5rem;
+}
+.editor-h2-chat {
+  position: relative;
+  margin: 1rem 0 0.5rem;
+  font-size: 1.125rem;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+  scroll-margin-top: 5rem;
+}
+.editor-h3-chat {
+  position: relative;
+  margin: 0.75rem 0 0.375rem;
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+  scroll-margin-top: 5rem;
+}
+.editor-h4-chat,
+.editor-h5-chat,
+.editor-h6-chat {
+  position: relative;
+  margin: 0.75rem 0 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+  scroll-margin-top: 5rem;
+}
+.editor-quote-chat {
+  position: relative;
+  margin: 0.5rem 0;
+  border-inline-start: 2px solid currentColor;
+  padding-inline-start: 0.75rem;
+  opacity: 0.8;
+}
+.editor-link-chat {
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.editor-inline-code-chat {
+  border-radius: 0.25rem;
+  background: var(--chakra-colors-bg-muted);
+  padding: 0.125rem 0.375rem;
+  font-family: var(--chakra-fonts-mono);
+  font-size: 0.875em;
+}
+.editor-code-chat {
+  position: relative;
+  margin: 0.5rem 0;
+  display: block;
+  overflow-x: auto;
+  border-radius: 0.5rem;
+  border: 1px solid var(--chakra-colors-border);
+  background: var(--chakra-colors-bg-panel);
+  padding: 0.75rem 1rem 0.75rem 0;
+  font-family: var(--chakra-fonts-mono);
+  font-size: 0.75rem;
+  line-height: 1.625;
+  tab-size: 2;
+  white-space: pre;
+}
+.editor-table-scrollable-wrapper-chat {
+  position: relative;
+  margin: 0.75rem 0;
+  width: 100%;
+  overflow-x: auto;
+}
+.editor-table-cell-chat {
+  position: relative;
+  border: 1px solid var(--chakra-colors-border);
+  padding: 0.5rem;
+  text-align: start;
+  vertical-align: middle;
+  outline: none;
+}
+.editor-table-cell-header-chat {
+  background: var(--chakra-colors-bg-muted);
+  text-align: start;
+  font-weight: 500;
+}
+.editor-table-row-chat {
+  border-bottom: 1px solid var(--chakra-colors-border);
+}
+.editor-list-decimal {
+  list-style-type: decimal;
+}
+.editor-list-upper-alpha {
+  list-style-type: upper-alpha;
+}
+.editor-list-lower-alpha {
+  list-style-type: lower-alpha;
+}
+.editor-list-upper-roman {
+  list-style-type: upper-roman;
+}
+.editor-list-lower-roman {
+  list-style-type: lower-roman;
+}
+.editor-list-disc {
+  list-style-type: disc;
+}
+.editor-list-circle {
+  list-style-type: circle;
+}
+.editor-list-square {
+  list-style-type: square;
+}
+.editor-paragraph:last-child,
+.editor-ol:last-child,
+.editor-ul:last-child {
+  margin-bottom: 0;
+}
+:is(
+  .editor-h1,
+  .editor-h2,
+  .editor-h3,
+  .editor-h4,
+  .editor-h5,
+  .editor-h6,
+  .editor-h1-chat,
+  .editor-h2-chat,
+  .editor-h3-chat,
+  .editor-h4-chat,
+  .editor-h5-chat,
+  .editor-h6-chat,
+  .editor-quote,
+  .editor-card,
+  .editor-review,
+  .editor-pull-quote
+):first-child {
+  margin-top: 0;
+}
+.editor-listitem-nested::before,
+.editor-listitem-nested::after {
+  display: none;
+}
+.editor-link:hover,
+.editor-link-chat:hover {
+  opacity: 0.8;
+}
+.editor-table-row:hover {
+  background: var(--chakra-colors-bg-subtle);
+}
+.editor-collapsible-title:hover {
+  text-decoration: underline;
+}
+.editor-card[data-current-slot] {
+  border-color: var(--chakra-colors-brand-focus-ring);
+}
+.editor-card[data-selected="true"],
+.editor-pull-quote[data-selected="true"] {
+  outline: 2px solid var(--chakra-colors-brand-focus-ring);
+}
+.editor-listitem-checked::before,
+.editor-listitem-unchecked::before {
+  content: "";
+  position: absolute;
+  inset-inline-start: 0;
+  top: 0.25rem;
+  width: 1rem;
+  height: 1rem;
+  border: 1px solid var(--chakra-colors-border);
+  border-radius: 4px;
+  cursor: pointer;
+}
+.editor-listitem-checked::before {
+  background: var(--chakra-colors-brand-solid);
+  border-color: var(--chakra-colors-brand-solid);
+}
+.editor-listitem-checked::after {
+  content: "";
+  position: absolute;
+  inset-inline-start: 5px;
+  top: 6px;
+  width: 5px;
+  height: 9px;
+  transform: rotate(45deg);
+  border-right: 2px solid var(--chakra-colors-brand-contrast);
+  border-bottom: 2px solid var(--chakra-colors-brand-contrast);
+  cursor: pointer;
+}
+.editor-listitem-checked:focus::before,
+.editor-listitem-unchecked:focus::before {
+  outline: 2px solid var(--chakra-colors-brand-focus-ring);
+}
+
+.editor-inline-code,
+.editor-inline-code-chat {
+  direction: inherit;
+  unicode-bidi: normal;
+}
+:is(.editor-h1, .editor-h2, .editor-h3, .editor-h4, .editor-h5, .editor-h6) {
+  text-wrap: balance;
+}
+:is(
+  .editor-h1,
+  .editor-h2,
+  .editor-h3,
+  .editor-h4,
+  .editor-h5,
+  .editor-h6,
+  .editor-h1-chat,
+  .editor-h2-chat,
+  .editor-h3-chat,
+  .editor-h4-chat,
+  .editor-h5-chat,
+  .editor-h6-chat,
+  .editor-quote,
+  .editor-quote-chat,
+  .editor-card,
+  .editor-review,
+  .editor-pull-quote,
+  .editor-base
+):last-child {
+  margin-bottom: 0;
+}
+.editor-inline-code-chat {
+  background: color-mix(in srgb, currentColor 10%, transparent);
+  padding-inline: 0.25rem;
+}
+.editor-table-cell-chat {
+  border-color: color-mix(in srgb, currentColor 20%, transparent);
+  padding: 0.375rem 0.5rem;
+}
+.editor-table-cell-header-chat {
+  background: color-mix(in srgb, currentColor 5%, transparent);
+}
+.editor-table-row-chat {
+  border-color: color-mix(in srgb, currentColor 20%, transparent);
+}
+@media (prefers-reduced-motion: reduce) {
+  .editor-collapsible-content,
+  details.editor-collapsible::details-content,
+  .editor-collapsible > summary::before {
+    transition: none;
+  }
+}

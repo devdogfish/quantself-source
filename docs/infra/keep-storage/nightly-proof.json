@@ -1,0 +1,100 @@
+{
+  "restoreId": "20261114T065840Z-d419ee3d4cd9",
+  "vmId": 2544,
+  "manualRehearsal": {
+    "status": "verified_retained",
+    "originalFailedReceiptPreserved": true,
+    "continuationSha256": "61d0292ce7603aac6447c8d26a081d62d6f8051a43930df759337b07b160f5c2",
+    "checks": {
+      "postgresqlVerified": true,
+      "cloudInitDisabled": true,
+      "noNetworkInterface": true,
+      "vmStopped": true
+    },
+    "cleanup": {
+      "status": "verified_removed",
+      "removedVolumes": [
+        "local-lvm:vm-2544-disk-0",
+        "local-lvm:vm-2544-cloudinit"
+      ],
+      "matchedContinuationSha256": "61d0292ce7603aac6447c8d26a081d62d6f8051a43930df759337b07b160f5c2"
+    }
+  },
+  "timers": {
+    "status": "timers_active",
+    "timeZone": "America/Halifax",
+    "backup": {
+      "enabled": true,
+      "nextRun": "2026-11-15T03:00:00-04:00"
+    },
+    "postgresqlRestore": {
+      "enabled": true,
+      "nextRun": "2026-11-15T04:30:00-04:00"
+    }
+  },
+  "immediateBackup": {
+    "status": "verified",
+    "command": "systemctl start --no-block keep-backup.service",
+    "restoreId": "20261114T175509Z-a9414550a6bf",
+    "completedAt": "2026-11-14T17:57:32.258033+00:00",
+    "activeBackupAndRetentionJournalsAbsent": true,
+    "b2Growth": {
+      "totalBytes": 726279580,
+      "targetBytes": 10000000000,
+      "files": {
+        "retainedBytes": 675343,
+        "retainedVersions": 43,
+        "unfinishedBytes": 0,
+        "unfinishedUploads": 0
+      },
+      "quantself": {
+        "retainedBytes": 725604237,
+        "retainedVersions": 76,
+        "unfinishedBytes": 0,
+        "unfinishedUploads": 0
+      }
+    }
+  },
+  "immediatePostgresqlRestore": {
+    "status": "verified",
+    "restoreId": "20261114T175509Z-a9414550a6bf",
+    "sameAsLatestBackupPair": true,
+    "vm2544AndVolumesAbsent": true,
+    "healthchecksSuccessAccepted": true,
+    "confirmedRecoveryEmailStatusChangedAt": "2026-11-14T18:01:01Z",
+    "completedAt": "2026-11-14T18:01:01.346070+00:00",
+    "restoreTask": "UPID:keep:00041904:006DED87:6AF8A138:qmrestore:2544:root@pam:"
+  },
+  "closingServiceState": {
+    "backupResult": "success",
+    "postgresqlRestoreResult": "success",
+    "bothServicesInactive": true,
+    "backupRetentionAndRestoreInflightMarkersAbsent": true,
+    "bothScheduledTimersActiveAndEnabled": true
+  },
+  "applicationLabCleanup": {
+    "status": "verified_removed",
+    "vmIds": [
+      2542,
+      2543
+    ],
+    "removedVolumeCount": 4,
+    "bridge": "vmbr254",
+    "vethNamespaceResolverAndTwoLabNftTablesRemoved": true,
+    "proxyUnitsStopped": true,
+    "proxySocketDirectoryRemoved": true,
+    "macSshTunnelClosed": true,
+    "ownerRecoveryCopiesAndBackupsRetained": true
+  },
+  "closingCapacity": {
+    "poolTotalBytes": 161061273600,
+    "poolUsedBytes": 14543833006,
+    "poolAvailableBytes": 146517440594,
+    "hostAvailableMemoryBytes": 8209989632,
+    "runningKeepVms": [
+      2540,
+      2541
+    ],
+    "allTestVmDisksAbsent": true
+  }
+}

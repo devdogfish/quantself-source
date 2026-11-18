@@ -1,0 +1,190 @@
+#!/bin/bash -p
+# Install root-owned at /usr/local/sbin/quantself-atlas-control-jit on the relay guest.
+set +x
+set -euo pipefail
+umask 077
+export PATH=/usr/sbin:/usr/bin:/sbin:/bin LC_ALL=C
+
+runner_user=quantself-atlas-relay
+runner_install=/usr/local/share/quantself-atlas
+runner_archive=$runner_install/actions-runner-linux-x64-2.338.2.tar.gz
+runner_digest=baebf204307bac6193480852732f0aba2ae97b6c5597c244f4d5558390147c40
+runner_template=$runner_install/runner-template-2.338.2
+launcher=/usr/local/sbin/quantself-atlas-control-jit
+runtime=/run/quantself-atlas-control-jit
+
+reject() { printf '%s\n' 'Atlas relay runner launch rejected.' >&2; exit 1; }
+
+root_owned() {
+  local mode
+  [[ ! -L $1 && $(stat -c %u "$1") == 0 ]] || return 1
+  mode=$(stat -c %a "$1") || return 1
+  (( (8#$mode & 022) == 0 ))
+}
+
+trusted_install_directory() {
+  local directory=$runner_install
+  [[ $directory == /* ]] || return 1
+  while [[ $directory != / ]]; do
+    [[ -d $directory ]] && root_owned "$directory" || return 1
+    directory=$(dirname "$directory")
+  done
+}
+
+verify_archive() {
+  [[ -f $runner_archive ]] && root_owned "$runner_archive" || return 1
+  printf '%s  %s\n' "$runner_digest" "$runner_archive" | sha256sum --check --status
+}
+
+verify_template() {
+  local template=$1 invalid links link target lexical
+  [[ -d $template && ! -L $template &&
+     -d $template/runner && ! -L $template/runner &&
+     -f $template/source-sha256 && ! -L $template/source-sha256 &&
+     -f $template/runner/run.sh && -x $template/runner/run.sh &&
+     ! -L $template/runner/run.sh ]] || return 1
+  cmp -s "$template/source-sha256" <(printf '%s\n' "$runner_digest") || return 1
+
+  # The pinned runner has relative npm links. Permit only links that remain inside a copy.
+  invalid=$(find -P "$template" \( ! -uid 0 -o \( ! -type l -a -perm /6022 \) \
+    -o \( ! -type d -a ! -type f -a ! -type l \) -o \( -type f -a -links +1 \) \) -print -quit) || return 1
+  [[ -z $invalid ]] || return 1
+  links=$(find -P "$template/runner" -type l -print) || return 1
+  while IFS= read -r link; do
+    [[ -n $link ]] || continue
+    target=$(readlink "$link") || return 1
+    [[ $target != /* ]] || return 1
+    lexical=$(realpath -ms -- "$(dirname "$link")/$target") || return 1
+    [[ $lexical == "$template/runner/"* ]] || return 1
+    target=$(realpath -e -- "$link") || return 1
+    [[ $target == "$template/runner/"* ]] || return 1
+  done <<< "$links"
+}
+
+prepare_template() (
+  [[ $(id -u) == 0 && ! -e $runner_template && ! -L $runner_template ]] || reject
+  trusted_install_directory || reject
+  verify_archive || reject
+  staging=$(mktemp -d "$runner_install/.runner-template.XXXXXXXX") || reject
+  trap 'rm -rf -- "$staging"' EXIT
+  mkdir "$staging/runner"
+  tar -xz --no-same-owner -f "$runner_archive" -C "$staging/runner"
+  chmod -R a+rX,go-w "$staging/runner"
+  printf '%s\n' "$runner_digest" > "$staging/source-sha256"
+  chmod 0755 "$staging"
+  verify_template "$staging" || reject
+  mv -nT -- "$staging" "$runner_template"
+  [[ ! -e $staging ]] || reject
+  trap - EXIT
+  printf '%s\n' 'Atlas relay runner template prepared.'
+)
+
+select_worker() {
+  if trusted_install_directory && verify_template "$runner_template"; then
+    printf '%s\n' --worker-template
+  else
+    verify_archive || return 1
+    printf '%s\n' --worker
+  fi
+}
+
+materialize_runner() {
+  cd "$runtime"
+  if [[ ${1-} == --worker-template ]]; then
+    [[ ! -e runner && ! -L runner ]] || reject
+    printf '%s\n' 'Atlas relay template copy started.'
+    cp -a --no-preserve=ownership "$runner_template/runner" runner
+    cd runner
+    printf '%s\n' 'Atlas relay template copy finished.'
+  else
+    printf '%s\n' 'Atlas relay archive extraction started.'
+    tar -xz --no-same-owner -f "$runner_archive"
+    printf '%s\n' 'Atlas relay archive extraction finished.'
+  fi
+}
+
+relay_clock_cs() {
+  local uptime
+  [[ -r /proc/uptime ]] || return 1
+  read -r uptime _ < /proc/uptime || return 1
+  [[ $uptime =~ ^[0-9]+\.[0-9]{2}$ ]] || return 1
+  printf '%s\n' "${uptime/.}"
+}
+
+run_worker() {
+  [[ $(id -un) == "$runner_user" && ${RUNTIME_DIRECTORY-} == "$runtime" &&
+     -f ${CREDENTIALS_DIRECTORY-}/jit-config ]] || reject
+  unset config
+  IFS= read -r config < "$CREDENTIALS_DIRECTORY/jit-config" || reject
+  unset CREDENTIALS_DIRECTORY
+  [[ ${#config} -le 65536 && $config =~ ^[A-Za-z0-9+/=_-]+$ ]] || reject
+  export HOME="$runtime"
+  local launch_id=${QUANTSELF_ATLAS_TIMING_ID-}
+  unset QUANTSELF_ATLAS_TIMING_ID
+  if [[ $launch_id =~ ^[0-9a-f]{32}$ ]]; then
+    printf 'Atlas relay worker timing: %s %s started\n' "$launch_id" "$1"
+  fi
+  materialize_runner "${1-}"
+  if [[ $launch_id =~ ^[0-9a-f]{32}$ ]]; then
+    printf 'Atlas relay worker timing: %s %s finished\n' "$launch_id" "$1"
+  fi
+  # The pinned listener masks and removes this secret input before running a job.
+  export ACTIONS_RUNNER_INPUT_JITCONFIG="$config"
+  unset config
+  exec ./run.sh
+}
+
+start_runner() {
+  [[ $(id -u) == 0 ]] || reject
+
+  unset config
+  read_status=0
+  IFS= read -r -d '' -n 65538 -t 10 config || read_status=$?
+  [[ $read_status == 1 && $config == *$'\n' ]] || reject
+  config=${config%$'\n'}
+  [[ ${#config} -le 65536 && $config =~ ^[A-Za-z0-9+/=_-]+$ ]] || reject
+  local worker_mode selection_start selection_end launch_id='' timing_env=''
+  selection_start=$(relay_clock_cs) || selection_start=
+  worker_mode=$(select_worker) || reject
+  if [[ -n $selection_start && -r /proc/sys/kernel/random/uuid ]] &&
+     selection_end=$(relay_clock_cs) && read -r launch_id < /proc/sys/kernel/random/uuid; then
+    launch_id=${launch_id//-/}
+    if [[ $launch_id =~ ^[0-9a-f]{32}$ ]]; then
+      timing_env="--setenv=QUANTSELF_ATLAS_TIMING_ID=$launch_id"
+    fi
+  fi
+
+  credential_file=$(mktemp /run/quantself-atlas-control-jit.XXXXXXXX) || reject
+  trap 'unlink "$credential_file"' EXIT
+  printf '%s\n' "$config" > "$credential_file"
+  unset config
+
+  systemd-run --quiet --collect --unit=quantself-atlas-control-jit \
+    --property=Type=exec --property=User="$runner_user" --property=Group="$runner_user" \
+    --property="LoadCredential=jit-config:$credential_file" \
+    --property=RuntimeDirectory=quantself-atlas-control-jit --property=RuntimeDirectoryMode=0700 \
+    --property=RuntimeMaxSec=50min --property=UMask=0077 \
+    --property=ProtectSystem=strict --property=ProtectHome=yes --property=PrivateTmp=yes \
+    --property=PrivateDevices=yes --property=NoNewPrivileges=yes --property=ProtectControlGroups=yes \
+    --property=ProtectKernelTunables=yes --property=ProtectKernelModules=yes \
+    --property=CapabilityBoundingSet= --property=RestrictSUIDSGID=yes \
+    ${timing_env:+"$timing_env"} "$launcher" "$worker_mode" || reject
+  if [[ -n $timing_env ]]; then
+    printf 'Atlas relay launcher timing: %s %s %s\n' "$launch_id" "$worker_mode" \
+      "$(( (10#$selection_end - 10#$selection_start) * 10 ))" >&2
+  fi
+  printf '%s\n' 'Atlas relay runner started.'
+}
+
+main() {
+  case ${1-}:$# in
+    :0) start_runner ;;
+    --worker:1|--worker-template:1) run_worker "$1" ;;
+    --prepare-template:1) prepare_template ;;
+    *) reject ;;
+  esac
+}
+
+if [[ ${BASH_SOURCE[0]} == "$0" ]]; then
+  main "$@"
+fi

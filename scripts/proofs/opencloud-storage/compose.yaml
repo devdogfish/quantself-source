@@ -1,0 +1,26 @@
+services:
+  opencloud:
+    image: opencloudeu/opencloud-rolling:7.2.0@sha256:324c2e6d5e97f0d8bd2e4f716c491cc32f1054b3f527dbc4290ce4de113333ab
+    ports: ["127.0.0.1:19200:19200"]
+    environment:
+      IDM_ADMIN_PASSWORD: ${IDM_ADMIN_PASSWORD}
+      OC_INSECURE: "true"
+      OC_URL: https://localhost:19200
+      PROXY_HTTP_ADDR: 0.0.0.0:19200
+      PROXY_ENABLE_BASIC_AUTH: "false"
+      OC_LOG_LEVEL: error
+      STORAGE_USERS_DRIVER: posix
+    volumes:
+      - config:/etc/opencloud
+      - data:/var/lib/opencloud
+  postgres:
+    image: postgres:18-alpine@sha256:b0ba6f2b6290ae40c9aacf6cc72849a2954778fef88774e122131d4b3c3b5e5b
+    environment:
+      POSTGRES_HOST_AUTH_METHOD: trust
+      POSTGRES_DB: storage_proof
+    volumes:
+      - pgdata:/var/lib/postgresql
+volumes:
+  config:
+  data:
+  pgdata:

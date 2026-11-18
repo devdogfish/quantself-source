@@ -1,0 +1,13 @@
+[Unit]
+Description=Coordinated Keep PBS and B2 backup
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+User=root
+UMask=0077
+ExecStart=/usr/bin/python3 /usr/local/lib/keep-backup/backup_monitor.py
+TimeoutStartSec=64min
+TimeoutStopSec=30s
+SuccessExitStatus=75

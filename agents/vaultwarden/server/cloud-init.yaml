@@ -1,0 +1,86 @@
+#cloud-config
+hostname: vaultwarden
+preserve_hostname: false
+manage_etc_hosts: true
+disable_root: true
+ssh_pwauth: false
+users:
+  - name: devdogfish
+    gecos: Owner
+    groups: [sudo]
+    shell: /bin/bash
+    lock_passwd: true
+bootcmd:
+  - [systemctl, mask, --now, ssh.service, ssh.socket]
+package_update: true
+packages:
+  - ca-certificates
+  - curl
+  - docker.io
+  - docker-compose
+  - nftables
+  - qemu-guest-agent
+  - sqlite3
+write_files:
+  - path: /etc/vaultwarden/firewall.nft
+    owner: root:root
+    permissions: '0644'
+    content: |
+      destroy table inet vaultwarden_guest
+      table inet vaultwarden_guest {
+          chain input {
+              type filter hook input priority -5; policy accept;
+              iifname "lo" accept
+              ct state { established, related } accept
+              iifname "tailscale0" tcp dport 443 accept
+              counter drop
+          }
+          chain output {
+              type filter hook output priority -5; policy accept;
+              oifname "tailscale0" ct state { established, related } accept
+              oifname "tailscale0" counter drop
+          }
+          chain forward {
+              type filter hook forward priority -5; policy accept;
+              oifname "tailscale0" counter drop
+              iifname "tailscale0" counter drop
+              ct direction original ct status dnat counter drop
+          }
+      }
+  - path: /etc/systemd/system/vaultwarden-firewall.service
+    owner: root:root
+    permissions: '0644'
+    defer: true
+    content: |
+      [Unit]
+      Description=Vaultwarden guest network boundary
+      Before=docker.service tailscaled.service
+
+      [Service]
+      Type=oneshot
+      RemainAfterExit=yes
+      ExecStart=/usr/sbin/nft --file /etc/vaultwarden/firewall.nft
+
+      [Install]
+      WantedBy=multi-user.target
+  - path: /etc/systemd/system/docker.service.d/vaultwarden-firewall.conf
+    owner: root:root
+    permissions: '0644'
+    defer: true
+    content: |
+      [Unit]
+      Requires=vaultwarden-firewall.service
+      After=vaultwarden-firewall.service
+  - path: /etc/systemd/system/tailscaled.service.d/vaultwarden-firewall.conf
+    owner: root:root
+    permissions: '0644'
+    defer: true
+    content: |
+      [Unit]
+      Requires=vaultwarden-firewall.service
+      After=vaultwarden-firewall.service
+runcmd:
+  - [systemctl, daemon-reload]
+  - [nft, --check, --file, /etc/vaultwarden/firewall.nft]
+  - [systemctl, enable, --now, vaultwarden-firewall.service]
+  - [systemctl, enable, --now, qemu-guest-agent.service]

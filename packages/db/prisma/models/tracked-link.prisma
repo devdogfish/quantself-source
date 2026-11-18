@@ -1,0 +1,14 @@
+model TrackedLink {
+  code            String    @id @db.VarChar(64)
+  kind            String    @db.VarChar(11)
+  applicationId   String?   @unique @map("application_id") @db.Uuid
+  track           String?   @db.VarChar(20)
+  company         String?   @db.VarChar(200)
+  title           String    @db.VarChar(200)
+  revision        Int?
+  sentAt          DateTime? @map("sent_at")
+  archivedAt      DateTime? @map("archived_at")
+  createdAt       DateTime  @default(now()) @map("created_at")
+
+  @@map("tracked_link")
+}

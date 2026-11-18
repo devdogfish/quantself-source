@@ -1,0 +1,11 @@
+# On Gate, set hostinger_peer to the checked Tailscale IPv4. This table
+# does not replace the existing host or Tailscale tables.
+define hostinger_peer = @GATE_PEER_IPV4@
+
+table inet quantself_hook_relay {
+	chain input {
+		type filter hook input priority -10; policy accept;
+		tcp dport 8780 iifname "tailscale0" ip saddr $hostinger_peer accept
+		tcp dport 8780 drop
+	}
+}

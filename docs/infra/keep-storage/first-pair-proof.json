@@ -1,0 +1,68 @@
+{
+  "restoreId": "20261114T065840Z-d419ee3d4cd9",
+  "startedAt": "2026-11-14T06:58:40Z",
+  "completedAt": "2026-11-14T07:05:24.095544+00:00",
+  "status": "complete",
+  "source": "Keep private synthetic validation environment",
+  "appImage": "sha256:60abe78f12a689a755699a4719fe6691ad68fb9d4cccff3854d6b130bf1e079d",
+  "pbsEncryptionFingerprint": "19:2e:7a:95:6e:86:d1:e8:3c:68:fb:85:95:6b:42:e5:90:c0:db:ac:fc:5c:9c:f3:dd:3c:6c:a9:fc:22:a8:30",
+  "files": {
+    "pbsVolume": "backup:backup/vm/2540/2026-11-14T07:00:10Z",
+    "repository": "b9fbf83d91e00e01bb42ef91e57028276ce0adabb3908b59c0f63472a1fafde1",
+    "snapshot": "779a7802a04292add1411d6042bbe9ba541b0fe4e643e6ebeccc1bdb208cd39d",
+    "inventoryEntries": 770,
+    "estimatedStagingBytes": 26244436
+  },
+  "quantself": {
+    "pbsVolume": "backup:backup/vm/2541/2026-11-14T07:00:54Z",
+    "repository": "8d69798ecf68502e119f6e0cc89b2306a1460786783da02e5c8a2bb303f92418",
+    "snapshot": "1f1e5ee3d2a62ce03850f7244834bb08254e0383f5290785281e14be8d4ba53a",
+    "inventoryEntries": 16,
+    "migrationCount": 66,
+    "estimatedStagingBytes": 1885639535,
+    "databaseDump": {
+      "bytes": 196670,
+      "sha256": "cfbe43cf9466822789a3723ab309e009f3d0313fdf8cfea615b0a013003fc394"
+    },
+    "appImageArchive": {
+      "bytes": 726361118,
+      "sha256": "57b98984c6b49b6dd5595e958f17beacf4b82e833fc7464bebf6a80914d39ba8"
+    }
+  },
+  "verified": [
+    "Coordinator finalized one manifest matching both encrypted PBS snapshots and both restic snapshots",
+    "Both guest captures and clean pause/resume operations completed",
+    "Private application health returned HTTP 200 with trusted TLS after resume",
+    "Frozen Quantself capture includes verified app image archive, database dump and deployment metadata"
+  ],
+  "b2Census": {
+    "observedAt": "2026-11-14T07:06:21.731035+00:00",
+    "scope": "configured backup prefixes, including retained test versions",
+    "retainedBytes": 725903031,
+    "retainedVersions": 94,
+    "unfinishedBytes": 0,
+    "unfinishedUploads": 0,
+    "softTargetBytes": 10000000000
+  },
+  "limits": [
+    "Independent PBS native audits and B2 extraction passed. Full isolated application recovery remains pending for both sources.",
+    "Nightly PostgreSQL restore rehearsal and scheduled operation remain pending. Timers are disabled."
+  ],
+  "independentMetadata": {
+    "status": "preserved",
+    "location": "Owner private Mac storage",
+    "files": 5,
+    "verification": "Complete receipt matched both frozen manifests and both inventory digests"
+  },
+  "healthchecks": {
+    "observedAt": "2026-11-14T07:07:48.641755Z",
+    "backupSuccess": "accepted",
+    "growthSuccess": "accepted",
+    "alertDelivery": "verified",
+    "alertEvidence": "alert-test-proof.json"
+  },
+  "independentRecoveryEvidence": {
+    "pbs": "pbs-restore-proof.json",
+    "b2": "b2-restore-proof.json"
+  }
+}

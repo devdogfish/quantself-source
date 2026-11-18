@@ -1,0 +1,30 @@
+model Meal {
+  id        String           @id @default(cuid())
+  startedAt DateTime
+  endedAt   DateTime?
+  kind      MealKind         @default(UNSPECIFIED)
+  source    EntrySource      @default(MANUAL)
+  location  SessionLocation?
+  title     String?
+  notes     String?
+  metadata  Json?
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+
+  substanceIntakes SubstanceIntake[]
+
+  @@index([startedAt])
+  @@index([source, startedAt])
+  @@index([kind, startedAt])
+  @@index([location, startedAt])
+  @@map("meal")
+}
+
+enum MealKind {
+  UNSPECIFIED
+  BREAKFAST
+  LUNCH
+  DINNER
+  SNACK
+  OTHER
+}

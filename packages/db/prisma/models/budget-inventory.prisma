@@ -1,0 +1,17 @@
+// Optional evidence links; never create expenses or change inventory quantities.
+model BudgetInventoryLink {
+  ownerId String
+  id String @default(cuid())
+  receiptId String?
+  expenseId String?
+  itemId String
+  receipt BudgetReceipt? @relation(fields: [ownerId, receiptId], references: [ownerId, id], onDelete: Cascade)
+  expense BudgetExpense? @relation(fields: [ownerId, expenseId], references: [ownerId, id], onDelete: Cascade)
+  item InventoryItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+
+  @@id([ownerId, id])
+  @@unique([ownerId, receiptId, itemId])
+  @@unique([ownerId, expenseId, itemId])
+  @@index([itemId])
+  @@map("budget_inventory_link")
+}

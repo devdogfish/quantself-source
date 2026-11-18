@@ -1,0 +1,22 @@
+import { expect, test } from "bun:test";
+import { OpenAPIHono } from "@hono/zod-openapi";
+import { registerHabitAskRoutes } from "./habits-ask-route";
+const sample = { id: "00000000-0000-4000-8000-000000000001", habitId: "walk", text: "Tired", date: "2026-11-13", at: "2026-11-13T16:00:00Z", feeling: "Tired", outcome: "open", outcomeRevision: null, answer: null };
+test("read/ask permissions are separate and owner-scoped; body/key validation precedes generation", async () => {
+  const app = new OpenAPIHono<any>(); let access: any = null; const calls: unknown[][] = [];
+  app.use("*", async (c, next) => { c.set("accessContext", access); await next(); });
+  registerHabitAskRoutes(app, { read: async (...args: any[]) => { calls.push(args); return { rows: [sample], next: null }; }, ask: async (...args: any[]) => { calls.push(args); return sample; } } as any);
+  const post = (body: unknown = { habitId: "walk", text: "Tired" }, key = sample.id) => app.request("/api/v1/habits/ask", { method: "POST", headers: { "Content-Type": "application/json", "Idempotency-Key": key }, body: JSON.stringify(body) });
+  expect((await post()).status).toBe(401);
+  access = { owner: { id: "owner" }, client: { id: "client" }, permissions: ["habits:read"] };
+  expect((await post()).status).toBe(403); expect(calls).toHaveLength(0);
+  expect((await app.request("/api/v1/habits/asks")).status).toBe(200); expect(calls[0]).toEqual(["owner", undefined]);
+  access.permissions = ["habits:write"];
+  expect((await app.request("/api/v1/habits/asks")).status).toBe(403);
+  access.permissions = ["habits:read", "habits:write"];
+  expect((await post({ habitId: "walk", text: "x".repeat(2001) })).status).toBe(400);
+  expect((await post({ habitId: "walk", text: "x".repeat(17000) })).status).toBe(413);
+  expect((await post(undefined, "not-a-uuid")).status).toBe(400); expect(calls).toHaveLength(1);
+  const response = await post(); expect(response.status).toBe(200); expect(response.headers.get("cache-control")).toBe("no-store");
+  expect(calls[1]).toEqual(["owner", "client", { habitId: "walk", text: "Tired" }, sample.id]);
+});

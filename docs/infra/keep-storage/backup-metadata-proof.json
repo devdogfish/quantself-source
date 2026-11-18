@@ -1,0 +1,39 @@
+{
+  "scope": "Synthetic local Linux ARM64 filesystem repositories; no cloud or private data",
+  "fixture": {
+    "randomOriginalBytes": 16777216,
+    "sparseLogicalBytes": 67108864,
+    "editBytes": 65536,
+    "checks": [
+      "content hashes",
+      "user xattrs for file and directory",
+      "uid/gid",
+      "permissions",
+      "mtime nanoseconds",
+      "symlink",
+      "hardlink",
+      "sparse restore"
+    ]
+  },
+  "kopiaWithUncompressedGnuTar": {
+    "version": "0.23.1",
+    "archiveBytes": 16793600,
+    "initialRepositoryBytes": 16803221,
+    "unchangedSnapshotAddedBytes": 1132426,
+    "changed64KiBAddedBytes": 12716105,
+    "restoredMetadataAndContents": true,
+    "archiveByteIdenticalWithoutChanges": false
+  },
+  "resticNative": {
+    "version": "0.19.1",
+    "initialRepositoryBytes": 16783233,
+    "unchangedSnapshotAddedBytes": 1308,
+    "changed64KiBAddedBytes": 2260876,
+    "restoredMetadataAndContents": true
+  },
+  "limits": [
+    "Small fixture, not a universal tool benchmark or production growth forecast",
+    "Kopia archive wrapper has whole-archive rescans and GNU sparse header churn",
+    "No B2 permissions, version recovery, network, or real application restore tested here"
+  ]
+}

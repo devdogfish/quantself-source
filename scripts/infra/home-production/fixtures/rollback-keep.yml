@@ -1,0 +1,65 @@
+# Disposable fixture. The relay emits a local envelope and has no production transport.
+name: Rehearse Keep rollback
+run-name: Rollback Quantself ${{ inputs.canonical_sha }} ${{ inputs.target_sha }} ${{ inputs.image_id }} ${{ inputs.prior_slot }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      canonical_sha:
+        required: true
+        type: string
+      target_sha:
+        required: true
+        type: string
+      image_id:
+        required: true
+        type: string
+      prior_slot:
+        required: true
+        type: string
+
+permissions:
+  actions: read
+  contents: read
+
+concurrency:
+  group: production-deploy
+  cancel-in-progress: false
+
+jobs:
+  relay:
+    if: >-
+      ${{ github.event_name == 'workflow_dispatch' &&
+          github.ref == 'refs/heads/main' && github.ref_protected &&
+          !github.event.repository.fork &&
+          github.repository == vars.ROLLBACK_CONTROL_REPOSITORY &&
+          github.repository_id == vars.ROLLBACK_CONTROL_REPOSITORY_ID &&
+          github.actor_id == vars.ROLLBACK_CONTROL_OWNER_ID }}
+    runs-on: [self-hosted, linux, x64, rollback-fixture]
+    steps:
+      - name: Emit disposable rollback envelope
+        shell: bash
+        env:
+          CANONICAL_SHA: ${{ inputs.canonical_sha }}
+          TARGET_SHA: ${{ inputs.target_sha }}
+          IMAGE_ID: ${{ inputs.image_id }}
+          PRIOR_SLOT: ${{ inputs.prior_slot }}
+          EVENT_FORK: ${{ github.event.repository.fork }}
+          CONTROL_REPOSITORY: ${{ vars.ROLLBACK_CONTROL_REPOSITORY }}
+          CONTROL_REPOSITORY_ID: ${{ vars.ROLLBACK_CONTROL_REPOSITORY_ID }}
+          CONTROL_OWNER_ID: ${{ vars.ROLLBACK_CONTROL_OWNER_ID }}
+          CONTROL_SHA: ${{ vars.ROLLBACK_CONTROL_SHA }}
+        run: |
+          set -euo pipefail
+          [[ "$GITHUB_SERVER_URL" == https://github.com && "$GITHUB_EVENT_NAME" == workflow_dispatch &&
+             "$GITHUB_REF" == refs/heads/main && "$GITHUB_REF_PROTECTED" == true && "$EVENT_FORK" == false &&
+             "$GITHUB_REPOSITORY" == "$CONTROL_REPOSITORY" &&
+             "$GITHUB_REPOSITORY_ID" == "$CONTROL_REPOSITORY_ID" &&
+             "$GITHUB_ACTOR_ID" == "$CONTROL_OWNER_ID" &&
+             "$GITHUB_ACTOR" == "$GITHUB_TRIGGERING_ACTOR" &&
+             "$GITHUB_WORKFLOW_REF" == "$CONTROL_REPOSITORY/.github/workflows/rollback-keep.yml@refs/heads/main" &&
+             "$GITHUB_WORKFLOW_SHA" == "$CONTROL_SHA" && "$GITHUB_SHA" == "$CONTROL_SHA" &&
+             "$GITHUB_RUN_ID" =~ ^[1-9][0-9]{0,19}$ && "$GITHUB_RUN_ATTEMPT" =~ ^[1-9][0-9]{0,9}$ &&
+             "$CANONICAL_SHA" =~ ^[0-9a-f]{40}$ && "$TARGET_SHA" =~ ^[0-9a-f]{40}$ &&
+             "$IMAGE_ID" =~ ^sha256:[0-9a-f]{64}$ && "$PRIOR_SLOT" =~ ^(blue|green)$ ]] || exit 1
+          printf '%s\n' rollback "$GITHUB_RUN_ID" "$GITHUB_RUN_ATTEMPT" "$CANONICAL_SHA" "$TARGET_SHA" "$IMAGE_ID" "$PRIOR_SLOT"

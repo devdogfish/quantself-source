@@ -1,0 +1,29 @@
+{
+  "honcho_url": "https://honcho.example.test",
+  "honcho_workspace": "dawnshift",
+  "honcho_owner_peer": "owner",
+  "quantself_url": "https://quantself.example.test",
+  "agents": {
+    "sam": {
+      "api_host": "100.64.10.20",
+      "api_port": 8642,
+      "cdp_port": 9222,
+      "websockify_port": 6080,
+      "hq_mcp_url": "https://bot-hq.example.test:8787/mcp/sam-id"
+    },
+    "stacy": {
+      "api_host": "100.64.10.21",
+      "api_port": 8642,
+      "cdp_port": 9222,
+      "websockify_port": 6080,
+      "hq_mcp_url": "https://bot-hq.example.test:8787/mcp/stacy-id"
+    },
+    "tyler": {
+      "api_host": "100.64.10.22",
+      "api_port": 8642,
+      "cdp_port": 9222,
+      "websockify_port": 6080,
+      "hq_mcp_url": "https://bot-hq.example.test:8787/mcp/tyler-id"
+    }
+  }
+}

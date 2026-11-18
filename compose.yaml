@@ -1,0 +1,223 @@
+name: quantself
+
+x-quantself-image: &quantself-image
+  image: quantself-app
+
+x-database-environment: &database-environment
+  DATABASE_URL: ${DATABASE_URL:-postgresql://quantself:quantself@postgres:5432/quantself}
+
+services:
+  auth-secret-init:
+    <<: *quantself-image
+    restart: "no"
+    environment:
+      BETTER_AUTH_SECRET_FILE: /run/quantself/auth-secret
+    command: ["bun", "run", "--cwd", "packages/auth", "auth-secret:init"]
+    volumes:
+      - quantself_auth_secret:/run/quantself
+    networks:
+      - quantself_internal
+
+  migrate:
+    <<: *quantself-image
+    restart: "no"
+    environment:
+      <<: *database-environment
+      NODE_ENV: production
+    command:
+      ["bun", "run", "--cwd", "packages/db", "migrate:deploy-only"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - quantself_internal
+
+  app:
+    <<: *quantself-image
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      <<: *database-environment
+      NODE_ENV: production
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:-}
+      BETTER_AUTH_SECRET_FILE: /run/quantself/auth-secret
+      QUANTSELF_OWNER_INGRESS_TOKEN: ${QUANTSELF_OWNER_INGRESS_TOKEN:-}
+      QUANTSELF_PUBLIC_ORIGIN: ${QUANTSELF_PUBLIC_ORIGIN:-${BETTER_AUTH_URL:-}}
+      QUANTSELF_INSTANCE_NAME: ${QUANTSELF_INSTANCE_NAME:-QuantSelf}
+      QUANTSELF_OWNER_EMAIL: ${QUANTSELF_OWNER_EMAIL:-owner@quantself.invalid}
+      NEXT_TELEMETRY_DISABLED: "1"
+      PORT: "3000"
+      HOSTNAME: "0.0.0.0"
+      QUANTSELF_API_INTERNAL_URL: http://api:3001
+      INVENTORY_UPLOAD_DIR: /app/storage/inventory-images
+      INVENTORY_AUDIO_UPLOAD_DIR: /app/storage/inventory-audio
+      INVENTORY_ASSET_UPLOAD_DIR: /app/storage/inventory-assets
+      GIRKE_API_BASE_URL: ${GIRKE_API_BASE_URL:-}
+      GIRKE_API_TOKEN: ${GIRKE_API_TOKEN:-}
+    volumes:
+      - quantself_inventory_uploads:/app/storage/inventory-images
+      - quantself_inventory_audio_uploads:/app/storage/inventory-audio
+      - quantself_inventory_asset_uploads:/app/storage/inventory-assets
+      - quantself_auth_secret:/run/quantself:ro
+    depends_on:
+      auth-secret-init:
+        condition: service_completed_successfully
+      migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "wget --quiet --output-document=/dev/null http://127.0.0.1:3000/favicon.ico",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 24
+      start_period: 20s
+    expose:
+      - "3000"
+    networks:
+      - quantself_internal
+
+  api:
+    <<: *quantself-image
+    restart: unless-stopped
+    stop_grace_period: 15m
+    environment:
+      <<: *database-environment
+      NODE_ENV: production
+      API_PORT: "3001"
+      QUANTSELF_ORIGINALS_PROVIDER: ${QUANTSELF_ORIGINALS_PROVIDER:-legacy}
+      QUANTSELF_ORIGINALS_WRITE_PAUSED: ${QUANTSELF_ORIGINALS_WRITE_PAUSED:-0}
+      QUANTSELF_OPENCLOUD_URL: ${QUANTSELF_OPENCLOUD_URL:-}
+      QUANTSELF_OPENCLOUD_SPACE_ID: ${QUANTSELF_OPENCLOUD_SPACE_ID:-}
+      QUANTSELF_OPENCLOUD_USERNAME: ${QUANTSELF_OPENCLOUD_USERNAME:-}
+      QUANTSELF_OPENCLOUD_TOKEN: ${QUANTSELF_OPENCLOUD_TOKEN:-}
+      QUANTSELF_TODO_CAPTURE_ROOT: ${QUANTSELF_TODO_CAPTURE_ROOT:-/app/storage/todo-captures}
+      QUANTSELF_JOBS_PRIVATE_FIELDS_KEY: ${QUANTSELF_JOBS_PRIVATE_FIELDS_KEY:-}
+      QUANTSELF_TODO_REPOSITORY: ${QUANTSELF_TODO_REPOSITORY:-}
+      QUANTSELF_TODO_TEST_REPOSITORY: ${QUANTSELF_TODO_TEST_REPOSITORY:-}
+      QUANTSELF_TODO_PROJECT_NUMBER: ${QUANTSELF_TODO_PROJECT_NUMBER:-}
+      QUANTSELF_BOT_HQ_AGENT_LINKS: ${QUANTSELF_BOT_HQ_AGENT_LINKS:-}
+      QUANTSELF_TODO_DELEGATION_STALE_MINUTES: ${QUANTSELF_TODO_DELEGATION_STALE_MINUTES:-}
+      QUANTSELF_ELEVENLABS_AGENT_ID: ${QUANTSELF_ELEVENLABS_AGENT_ID:-}
+      QUANTSELF_PUSH_PUBLIC_KEY: ${QUANTSELF_PUSH_PUBLIC_KEY:-}
+      QUANTSELF_PUSH_PRIVATE_KEY: ${QUANTSELF_PUSH_PRIVATE_KEY:-}
+      QUANTSELF_PUSH_SUBJECT: ${QUANTSELF_PUSH_SUBJECT:-}
+      QUANTSELF_ELEVENLABS_API_KEY: ${QUANTSELF_ELEVENLABS_API_KEY:-}
+      QUANTSELF_PHONE_ENABLED: ${QUANTSELF_PHONE_ENABLED:-}
+      QUANTSELF_PHONE_PUBLIC_URL: ${QUANTSELF_PHONE_PUBLIC_URL:-}
+      QUANTSELF_PHONE_API_KEY: ${QUANTSELF_PHONE_API_KEY:-}
+      QUANTSELF_TWILIO_ACCOUNT_SID: ${QUANTSELF_TWILIO_ACCOUNT_SID:-}
+      QUANTSELF_TWILIO_AUTH_TOKEN: ${QUANTSELF_TWILIO_AUTH_TOKEN:-}
+      QUANTSELF_TWILIO_PHONE_NUMBER: ${QUANTSELF_TWILIO_PHONE_NUMBER:-}
+      QUANTSELF_PHONE_OWNER_NUMBER: ${QUANTSELF_PHONE_OWNER_NUMBER:-}
+      QUANTSELF_PHONE_PIN_HASH: ${QUANTSELF_PHONE_PIN_HASH:-}
+      QUANTSELF_ELEVENLABS_PHONE_AGENT_ID: ${QUANTSELF_ELEVENLABS_PHONE_AGENT_ID:-}
+      QUANTSELF_JARVIS_TOOL_ORIGIN: ${QUANTSELF_JARVIS_TOOL_ORIGIN:-}
+      QUANTSELF_HABITS_REPOSITORY: ${QUANTSELF_HABITS_REPOSITORY:-}
+      QUANTSELF_HABITS_GITHUB_APP_ID: ${QUANTSELF_HABITS_GITHUB_APP_ID:-}
+      QUANTSELF_HABITS_GITHUB_INSTALLATION_ID: ${QUANTSELF_HABITS_GITHUB_INSTALLATION_ID:-}
+      QUANTSELF_HABITS_GITHUB_PRIVATE_KEY: ${QUANTSELF_HABITS_GITHUB_PRIVATE_KEY:-}
+      QUANTSELF_GITHUB_APP_ID: ${QUANTSELF_GITHUB_APP_ID:-}
+      QUANTSELF_GITHUB_INSTALLATION_ID: ${QUANTSELF_GITHUB_INSTALLATION_ID:-}
+      QUANTSELF_GITHUB_PRIVATE_KEY: ${QUANTSELF_GITHUB_PRIVATE_KEY:-}
+      QUANTSELF_GITHUB_WEBHOOK_SECRET: ${QUANTSELF_GITHUB_WEBHOOK_SECRET:-}
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:-}
+      BETTER_AUTH_SECRET_FILE: /run/quantself/auth-secret
+      QUANTSELF_OWNER_INGRESS_TOKEN: ${QUANTSELF_OWNER_INGRESS_TOKEN:-}
+      QUANTSELF_PUBLIC_ORIGIN: ${QUANTSELF_PUBLIC_ORIGIN:-${BETTER_AUTH_URL:-}}
+      QUANTSELF_INSTANCE_NAME: ${QUANTSELF_INSTANCE_NAME:-QuantSelf}
+      QUANTSELF_OWNER_EMAIL: ${QUANTSELF_OWNER_EMAIL:-owner@quantself.invalid}
+      INVENTORY_UPLOAD_DIR: /app/storage/inventory-images
+      INVENTORY_AUDIO_UPLOAD_DIR: /app/storage/inventory-audio
+      INVENTORY_ASSET_UPLOAD_DIR: /app/storage/inventory-assets
+      INVENTORY_PREPROCESSING_WORKER_SECRET: ${INVENTORY_PREPROCESSING_WORKER_SECRET:-}
+      INVENTORY_ENRICHMENT_WORKER_SECRET: ${INVENTORY_ENRICHMENT_WORKER_SECRET:-}
+      QUANTSELF_JOBS_RESUME_TEMPLATES_DIR: /run/quantself-job-templates
+    command: ["bun", "run", "--cwd", "apps/api", "start:production"]
+    volumes:
+      - ${QUANTSELF_TODO_CAPTURE_VOLUME:-quantself_todo_captures}:${QUANTSELF_TODO_CAPTURE_ROOT:-/app/storage/todo-captures}
+      - ${QUANTSELF_JOBS_RESUME_TEMPLATES_SOURCE:-quantself_jobs_resume_templates}:/run/quantself-job-templates:ro
+      - quantself_auth_secret:/run/quantself:ro
+      - quantself_inventory_uploads:/app/storage/inventory-images
+      - quantself_inventory_audio_uploads:/app/storage/inventory-audio
+      - quantself_inventory_asset_uploads:/app/storage/inventory-assets
+    depends_on:
+      auth-secret-init:
+        condition: service_completed_successfully
+      migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "wget --quiet --output-document=/dev/null http://127.0.0.1:3001/api/health",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 24
+      start_period: 10s
+    expose:
+      - "3001"
+    networks:
+      - quantself_internal
+
+  gateway:
+    image: caddy:2.11.4-alpine
+    restart: unless-stopped
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+    depends_on:
+      app:
+        condition: service_healthy
+      api:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "wget --quiet --output-document=/dev/null http://127.0.0.1:3000/favicon.ico",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 24
+      start_period: 10s
+    expose:
+      - "3000"
+    networks:
+      - quantself_internal
+
+  postgres:
+    image: postgres:18-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-quantself}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-quantself}
+      POSTGRES_DB: ${POSTGRES_DB:-quantself}
+    volumes:
+      - quantself_postgres:/var/lib/postgresql
+    healthcheck:
+      test:
+        ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - quantself_internal
+
+volumes:
+  quantself_auth_secret:
+  quantself_postgres:
+  quantself_inventory_uploads:
+  quantself_inventory_audio_uploads:
+  quantself_inventory_asset_uploads:
+  quantself_codex_home:
+  quantself_todo_captures:
+  quantself_jobs_resume_templates:
+
+networks:
+  quantself_internal:
+    driver: bridge

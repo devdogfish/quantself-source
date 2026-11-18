@@ -1,0 +1,7 @@
+# Backup HOST only. Named approval required; no PBS datastore/token changes.
+table inet keep_storage_management_boundary {
+    chain input {
+        type filter hook input priority -10; policy accept;
+        iifname != "lo" iifname != "tailscale0" tcp dport { 22, 8007 } drop
+    }
+}

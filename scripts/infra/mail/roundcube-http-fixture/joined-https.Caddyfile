@@ -1,0 +1,9 @@
+{
+	admin off
+	auto_https off
+}
+
+https://roundcube.jobs.example.test {
+	tls /fixture-tls/roundcube.crt /fixture-tls/roundcube.key
+	reverse_proxy roundcube:80
+}

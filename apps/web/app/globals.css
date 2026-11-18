@@ -1,0 +1,21 @@
+/* App shell: which chrome block is visible. <html data-layout> is set before first paint by LAYOUT_BOOT_SCRIPT, so
+   the server HTML already paints the saved layout. Centered needs 1200px and the sidebar 1000px of viewport width,
+   otherwise the compact bar shows. Every [data-chrome] wrapper is display: contents (no box of its own). */
+:root { --app-header-height: 56px; --shell-top: 56px; }
+html {
+  scrollbar-gutter: stable;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+[data-chrome] { display: contents; }
+[data-chrome="center"], [data-chrome="side"] { display: none; }
+@media (min-width: 1200px) {
+  html[data-layout="center"] [data-chrome="compact"] { display: none; }
+  html[data-layout="center"] [data-chrome="center"] { display: contents; }
+}
+@media (min-width: 1000px) {
+  html[data-layout="side"] { --shell-top: 0px; }
+  html[data-layout="side"] [data-chrome="compact"] { display: none; }
+  html[data-layout="side"] [data-chrome="side"] { display: contents; }
+  html[data-layout="side"] [data-shell] { min-height: 100dvh; }
+}

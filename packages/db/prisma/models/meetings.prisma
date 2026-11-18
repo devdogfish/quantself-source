@@ -1,0 +1,54 @@
+// Visitor bookings (ADR 0053). Quantself is the only calendar; nothing syncs out.
+enum MeetingStatus {
+  booked
+  cancelled
+}
+
+model Meeting {
+  id                String        @id @default(uuid()) @db.Uuid
+  ownerId           String
+  start             DateTime      @db.Timestamptz(3)
+  end               DateTime      @db.Timestamptz(3)
+  guestName         String        @db.VarChar(100)
+  // Stored lower-cased so the per-email cap and rate limit cannot be dodged by case.
+  guestEmail        String        @db.VarChar(254)
+  note              String?       @db.VarChar(1000)
+  jitsiRoom         String        @unique @db.VarChar(64)
+  // SHA-256 of the guest's cancel token; the token itself only travels by email.
+  cancelTokenHash   String        @unique @db.Char(64)
+  // The plain token waits here only until the guest confirmation is sent, then is cleared.
+  pendingCancelToken String?      @db.VarChar(64)
+  status            MeetingStatus @default(booked)
+  createdAt         DateTime      @default(now())
+  cancelledAt       DateTime?
+  // Delivery is tracked independently per recipient. Leases expire after interrupted sends.
+  confirmationSentAt          DateTime?
+  confirmationLeaseUntil      DateTime?
+  ownerConfirmationSentAt     DateTime?
+  ownerConfirmationLeaseUntil DateTime?
+  reminderSentAt              DateTime?
+  reminderLeaseUntil          DateTime?
+  ownerReminderSentAt         DateTime?
+  ownerReminderLeaseUntil     DateTime?
+  cancellationSentAt          DateTime?
+  cancellationLeaseUntil      DateTime?
+  ownerCancellationSentAt     DateTime?
+  ownerCancellationLeaseUntil DateTime?
+
+  // A partial unique index on (ownerId, start) WHERE status = 'booked' lives in the migration.
+  @@index([ownerId, start])
+  @@index([guestEmail, start])
+  @@map("meeting")
+}
+
+model MeetingSettings {
+  ownerId       String   @id
+  timeZone      String   @default("America/Halifax")
+  // { "mon": [["09:00","17:00"]], ... } in the Owner's time zone; missing days are closed.
+  weeklyHours   Json
+  noticeMinutes Int      @default(720)
+  horizonDays   Int      @default(14)
+  updatedAt     DateTime @updatedAt
+
+  @@map("meeting_settings")
+}

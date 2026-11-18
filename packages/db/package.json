@@ -1,0 +1,33 @@
+{
+  "name": "@quantself/db",
+  "type": "module",
+  "main": "./index.ts",
+  "types": "./index.ts",
+  "exports": {
+    ".": "./index.ts",
+    "./umami-reader": "./umami-reader.ts",
+    "./website-analytics-contract": "./website-analytics-contract.ts",
+    "./generated/prisma/client": "./generated/prisma/client.ts",
+    "./generated/prisma/enums": "./generated/prisma/enums.ts"
+  },
+  "scripts": {
+    "generate": "bun x --bun prisma generate",
+    "migrate": "bun x --bun prisma migrate deploy && bun run seed",
+    "migrate:dev": "bun x --bun prisma migrate dev && bun run seed",
+    "migrate:deploy": "bun x --bun prisma migrate deploy && bun run seed",
+    "migrate:deploy-only": "bun x --bun prisma migrate deploy",
+    "migrate:reset": "bun x --bun prisma migrate reset --force && bun run seed",
+    "seed": "bun run seed.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@prisma/adapter-pg": "^7.4.2",
+    "@prisma/client": "^7.4.2",
+    "dotenv": "^17.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "typescript": "^5",
+    "prisma": "^7.4.2"
+  }
+}

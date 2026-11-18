@@ -1,0 +1,90 @@
+// Source observations retain provenance across catalog revisions.
+model HabitOccurrence {
+  ownerId       String
+  habitId       String
+  date          String
+  definitionSha String
+  definitionRevision Int?
+  status        String @default("open")
+  note          String @default("")
+  revision      Int @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  @@id([ownerId, habitId, date])
+  @@index([ownerId, date])
+  @@map("habit_occurrence")
+}
+model HabitCommand {
+  ownerId   String
+  clientId  String
+  commandId String
+  payload   String
+  result    Json
+  createdAt DateTime @default(now())
+  @@id([ownerId, clientId, commandId])
+  @@map("habit_command")
+}
+model HabitSlip {
+  ownerId String
+  id String
+  habitId String
+  definitionSha String
+  occurredAt DateTime
+  outcome String
+  trigger String @default("")
+  note String @default("")
+  createdAt DateTime @default(now())
+  @@id([ownerId, id])
+  @@index([ownerId, occurredAt, id])
+  @@map("habit_slip")
+}
+
+model HabitStack {
+  ownerId String
+  id String
+  definition Json
+  archivedAt DateTime?
+  @@id([ownerId, id])
+  @@map("habit_stack")
+}
+model HabitDefinition {
+  ownerId String
+  id String
+  definition Json
+  details Json
+  archivedAt DateTime?
+  @@id([ownerId, id])
+  @@map("habit_definition")
+}
+model HabitDefinitionRevision {
+  ownerId String
+  revision Int
+  commandId String
+  payload String
+  reason String
+  changes Json
+  actor String
+  result Json
+  createdAt DateTime @default(now())
+  @@id([ownerId, revision])
+  @@unique([ownerId, commandId])
+  @@map("habit_definition_revision")
+}
+
+// Ask intent is durable before generation. Outcome is joined from source check-ins.
+model HabitAsk {
+  ownerId String
+  clientId String
+  id String
+  habitId String
+  text String
+  date String
+  feeling String @default("Other")
+  answer Json?
+  state String @default("pending")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@id([ownerId, id])
+  @@index([ownerId, date, createdAt, id])
+  @@map("habit_ask")
+}

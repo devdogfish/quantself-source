@@ -1,0 +1,70 @@
+{
+  "date": "2026-11-14",
+  "restorePoint": "20261114T065840Z-d419ee3d4cd9",
+  "growthFailure": {
+    "testTargetBytes": 1,
+    "censusBytes": 725903031,
+    "savedTargetBytes": 10000000000,
+    "savedTargetChanged": false,
+    "dashboardState": "DOWN"
+  },
+  "missedHeartbeat": {
+    "testCron": "* * * * *",
+    "testGraceMinutes": 1,
+    "rearmedAt": "2026-11-14T07:25:21Z",
+    "dashboardDownObservedAfter": "2026-11-14T07:27:00Z"
+  },
+  "terminalFailure": {
+    "synthetic": true,
+    "endpointSuffix": "/fail",
+    "dashboardState": "DOWN"
+  },
+  "dashboardDowntimesObserved": 3,
+  "restored": {
+    "backupCron": "0 3 * * *",
+    "growthCron": "0 3 * * *",
+    "timeZone": "America/Halifax",
+    "graceHours": 2,
+    "rearmedAt": "2026-11-14T07:34:07.327552Z",
+    "sameVerifiedPair": true,
+    "backupState": "UP",
+    "growthState": "UP",
+    "postgresRestoreState": "Never",
+    "postgresRestorePingSent": false,
+    "localScreenshot": "/tmp/keep254-alerts-restored.png"
+  },
+  "postgresRestoreFailure": {
+    "synthetic": true,
+    "ownerApproved": true,
+    "endpointSuffix": "/fail",
+    "dashboardState": "DOWN",
+    "statusChangedAtUtc": "2026-11-14T17:44:43Z",
+    "ownerEmailVerified": true,
+    "ownerEmailObservedLocalMinute": "2026-11-14T13:44:00-04:00",
+    "ownerEmailTimeZone": "America/Halifax",
+    "emailIdentifiedApprovedSyntheticIssue254Test": true,
+    "productionFailure": false,
+    "healthyAfterSuccessfulDrill": "verified"
+  },
+  "ownerEmailReceipt": {
+    "status": "verified",
+    "sender": "healthchecks.io@healthchecks.io",
+    "timeZone": "America/Halifax",
+    "growthDown": "2026-11-14T03:25:00-04:00",
+    "missedHeartbeatDown": "2026-11-14T03:27:00-04:00",
+    "terminalFailureDown": "2026-11-14T03:29:00-04:00",
+    "backupAndGrowthUp": "2026-11-14T03:34:00-04:00",
+    "timestampPrecision": "minute"
+  },
+  "postgresRestoreRecovery": {
+    "status": "UP",
+    "restoreId": "20261114T175509Z-a9414550a6bf",
+    "providerAcknowledgementVerified": true,
+    "ownerEmailVerified": true,
+    "statusChangedAtUtc": "2026-11-14T18:01:01Z",
+    "ownerEmailObservedLocalMinute": "2026-11-14T14:01:00-04:00",
+    "subject": "UP | Keep PostgreSQL restore",
+    "sender": "healthchecks.io@healthchecks.io",
+    "testDowntimeSeconds": 977
+  }
+}

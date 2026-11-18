@@ -1,0 +1,9 @@
+{
+  "baseUrl": @honcho_url@,
+  "workspace": @honcho_workspace@,
+  "peerName": @honcho_owner_peer@,
+  "aiPeer": "tyler",
+  "pinUserPeer": true,
+  "sessionAiPeerPrefix": true,
+  "saveMessages": true
+}

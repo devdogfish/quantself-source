@@ -1,0 +1,9 @@
+[Unit]
+Description=Nightly coordinated Keep backup
+
+[Timer]
+OnCalendar=*-*-* 03:00:00 America/Halifax
+Persistent=yes
+
+[Install]
+WantedBy=timers.target

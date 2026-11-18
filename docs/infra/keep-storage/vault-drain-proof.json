@@ -1,0 +1,81 @@
+{
+  "observedDateUtc": "2026-11-14",
+  "image": "opencloudeu/opencloud:7.2.5@sha256:26fcc6f69d71937af015be73c585e7c36d1945d547fa2a6f706118283f1bcd6b",
+  "environment": "isolated synthetic PosixFS fixture on files; live Vault not stopped",
+  "quiescent": {
+    "passed": true,
+    "exitCode": 0,
+    "freshConnectionRefused": true,
+    "gatedPutSessionObserved": true,
+    "stagedPrefixBytes": 110592,
+    "preStopUploadSessionCounts": [
+      0,
+      0
+    ],
+    "uploadHttpStatus": 201,
+    "bytesBeforeAndAfterRestart": 233472,
+    "sha256": "ac346362d4db19559fc66ff6da532c9f02d5640dd41ec9d3054c320aaeff29b8",
+    "preStopTargetRead": {
+      "status": 200,
+      "attempts": 1,
+      "elapsedMs": 101
+    },
+    "postRestartControlRead": {
+      "status": 200,
+      "attempts": 1,
+      "elapsedMs": 109
+    },
+    "postRestartTargetRead": {
+      "status": 200,
+      "attempts": 1,
+      "elapsedMs": 89
+    }
+  },
+  "directInFlightStop": {
+    "passed": false,
+    "uploadHttpStatus": 201,
+    "postRestartTargetStatus": 425,
+    "boundedObservationSeconds": 15,
+    "meaning": "Upload remained processing throughout observation; no claim of permanent loss or eventual recovery"
+  },
+  "limits": [
+    "Proves zero-session quiescent shutdown, not safe shutdown with active direct writers",
+    "Dedicated fixture used synthetic Basic authentication and a fixture certificate; production authentication configuration unchanged",
+    "Coordinator must first drain API, prevent new direct Vault writes and verify two empty unfiltered session scans",
+    "Full paired restore remains pending",
+    "Gateway fixture models TLS termination with a trusted synthetic edge, not actual Tailscale routing or real Owner login; live TLS/OIDC/app create-read-update passed; Owner browser permission checks pending"
+  ],
+  "gateway": {
+    "mode": "gateway",
+    "configSha256": "97bfabd90dff14cac701b71b6b62b66439fd627bc5595775cd5614e2e24a0918",
+    "image": "caddy:2.11.4-alpine@sha256:6aeddd44c3078b0f9a35206472a11420648a79c184603ef95957d0a20044cb2b",
+    "fixtureOidcDiscoveryAndJwks": true,
+    "freshIngressDenied": true,
+    "normalPutBytes": 233472,
+    "normalPutSha256": "ac346362d4db19559fc66ff6da532c9f02d5640dd41ec9d3054c320aaeff29b8",
+    "normalReadAfterGatewayRestart": {
+      "status": 200,
+      "attempts": 1,
+      "elapsedMs": 103
+    },
+    "sseGatewayExitMs": 30195,
+    "slowPutGatewayExitMs": 30138,
+    "slowPutStatus": 502,
+    "pendingUploadSessions": 1,
+    "stopDecision": "blocked_by_pending_upload_sessions",
+    "opencloudRunningAfterGatewayTests": true
+  },
+  "liveGateway": {
+    "host": "files",
+    "serveProxy": "http://127.0.0.1:9201",
+    "loopbackOnly": true,
+    "trustedTlsOidcDiscovery": 200,
+    "canonicalIssuer": "https://redacted-endpoint-15.invalid",
+    "jwks": 200,
+    "appSyntheticRunId": "a1a0f32f0c054c8d994c9d33e3999251",
+    "appCreate": 201,
+    "appRead": 200,
+    "appUpdate": 204,
+    "updatedBytesVerified": true
+  }
+}

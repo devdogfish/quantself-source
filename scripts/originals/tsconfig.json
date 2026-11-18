@@ -1,0 +1,10 @@
+{
+  "extends": "../../apps/api/tsconfig.json",
+  "compilerOptions": {
+    "baseUrl": "../../apps/api",
+    "types": ["bun"],
+    "typeRoots": ["../../apps/api/node_modules/@types", "../../node_modules/@types"],
+    "lib": ["ESNext", "DOM"]
+  },
+  "include": ["*.ts"]
+}

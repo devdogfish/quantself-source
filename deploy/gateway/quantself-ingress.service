@@ -1,0 +1,23 @@
+[Unit]
+Description=Quantself private HTTPS and webhook ingress
+Wants=network-online.target tailscaled.service
+After=network-online.target tailscaled.service
+
+[Service]
+Type=notify
+DynamicUser=yes
+EnvironmentFile=/etc/quantself/ingress.env
+StateDirectory=quantself-ingress
+StateDirectoryMode=0700
+Environment=XDG_DATA_HOME=/var/lib/quantself-ingress
+Environment=XDG_CONFIG_HOME=/var/lib/quantself-ingress
+AmbientCapabilities=CAP_NET_BIND_SERVICE
+CapabilityBoundingSet=CAP_NET_BIND_SERVICE
+NoNewPrivileges=yes
+ExecStartPre=/usr/local/libexec/quantself-caddy-spaceship-v1.2.0 validate --config /etc/quantself-ingress/Keep.Caddyfile --adapter caddyfile
+ExecStart=/usr/local/libexec/quantself-caddy-spaceship-v1.2.0 run --config /etc/quantself-ingress/Keep.Caddyfile --adapter caddyfile
+Restart=on-failure
+RestartSec=5s
+
+[Install]
+WantedBy=multi-user.target

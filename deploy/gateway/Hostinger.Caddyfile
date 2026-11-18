@@ -1,0 +1,17 @@
+# Import this site into the existing Hostinger edge after the scoped relay is verified.
+# Set GATE_TAILNET_IP to the Gate node's exact Tailscale IPv4 address.
+import webhooks.caddy
+import owner-headers.caddy
+
+(gate_webhook_origin) {
+	reverse_proxy http://{$GATE_TAILNET_IP}:8780 {
+		header_up Host hooks.girke.dev
+		header_up -Cookie
+		header_up -Authorization
+	}
+}
+
+hooks.girke.dev {
+	import strip_owner_identity
+	import webhooks gate_webhook_origin gate_webhook_origin
+}

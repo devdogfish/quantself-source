@@ -1,0 +1,10 @@
+[Unit]
+Description=Record a Roundcube qualification failure in the local journal
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/echo "Roundcube patch qualification failed. Inspect quantself-roundcube-qualification.service."
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=quantself-roundcube-qualification-failure
+SyslogLevel=err

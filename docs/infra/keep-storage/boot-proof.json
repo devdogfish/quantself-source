@@ -1,0 +1,43 @@
+{
+  "observedAt": "2026-11-14T01:18:45Z",
+  "purpose": "Approved reboot verification for the two new Keep guests only",
+  "physicalHostsRebooted": false,
+  "guests": [
+    {
+      "vmid": 2540,
+      "hostname": "files",
+      "bootIdBefore": "641078e2-11d8-4c47-bd86-2323b67d9e76",
+      "bootIdAfter": "9760377e-84f2-44f5-bd35-ee94d8dd06e5",
+      "freshStrictPinnedSsh": true,
+      "cloudInit": "disabled-by-marker-file after completed bootstrap",
+      "activeServices": ["keep-storage-firewall", "docker", "tailscaled", "ssh"],
+      "firewallTable": "inet keep_storage_boundary",
+      "soleSudoMember": "devdogfish",
+      "rootPasswordKeyboardInteractiveSsh": "disabled",
+      "allowUsers": ["devdogfish"],
+      "tailnetOnlyServe": "https://redacted-endpoint-15.invalid -> http://127.0.0.1:9200"
+    },
+    {
+      "vmid": 2541,
+      "hostname": "quantself",
+      "bootIdBefore": "e68c43cc-7cdb-425d-8e46-9c848a286ef8",
+      "bootIdAfter": "b4f1c1f5-77bf-49b7-a9da-d03955bf41a3",
+      "freshStrictPinnedSsh": true,
+      "cloudInit": "disabled-by-marker-file after completed bootstrap",
+      "activeServices": ["keep-storage-firewall", "docker", "tailscaled", "ssh"],
+      "firewallTable": "inet keep_storage_boundary",
+      "soleSudoMember": "devdogfish",
+      "rootPasswordKeyboardInteractiveSsh": "disabled",
+      "allowUsers": ["devdogfish"],
+      "vaultDns": "redacted-endpoint-09.invalid",
+      "vaultHttpsStatus": 502,
+      "vaultTlsVerifyResult": 0
+    }
+  ],
+  "limits": [
+    "OpenCloud was not initialized at this check; HTTP 502 proves TLS/proxy reachability only",
+    "No actual Quantself application or backup recovery exercised",
+    "Full 51-pair network proof predates these reboots; firewall units and fresh Owner access verified here",
+    "Keep physical boot-unlock was not exercised"
+  ]
+}

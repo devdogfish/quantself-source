@@ -1,0 +1,17 @@
+[Unit]
+Description=Quantself Agent Vaultwarden unlock service
+
+[Service]
+User=quantself-vaultwarden
+EnvironmentFile=/etc/quantself-vaultwarden/settings
+Environment=PATH=/usr/local/bin:/usr/bin:/bin
+LoadCredentialEncrypted=unlock:/etc/quantself-vaultwarden/unlock.cred
+StateDirectory=quantself-vaultwarden
+StateDirectoryMode=0700
+ExecStart=/usr/local/libexec/quantself-vaultwarden/venv/bin/python -I /usr/local/libexec/quantself-vaultwarden/service.py
+UMask=0077
+ProtectHome=yes
+ProtectSystem=strict
+PrivateTmp=yes
+NoNewPrivileges=yes
+LimitCORE=0

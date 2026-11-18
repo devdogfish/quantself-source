@@ -1,0 +1,134 @@
+#!/usr/bin/env bash
+# Root-owned systemd service. Deploy requests carry a GitHub job token on stdin.
+set -Eeuo pipefail
+set +x
+unset frame github_token GH_TOKEN GITHUB_TOKEN
+
+: "${DEPLOY_PATH:?Set the production checkout path}"
+: "${PRODUCTION_URL:?Set the canonical dashboard HTTPS origin}"
+: "${PRODUCTION_HTTPS_IP:?Set the VM-local Caddy IPv4 listener address}"
+[[ "$DEPLOY_PATH" == /* && "${PRODUCTION_URL%/}" == https://qs.girke.dev &&
+  "$PRODUCTION_HTTPS_IP" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]
+
+read_status=0
+IFS= read -r -d '' -n 4256 -t 10 frame || read_status=$?
+if [[ "$read_status" != 1 || "$frame" != *$'\n'* ]]; then
+  echo "Invalid deployment request."
+  exit 1
+fi
+request="${frame%%$'\n'*}"
+github_token="${frame#*$'\n'}"
+unset frame
+exec </dev/null
+if [[ "$request" != preflight && ! "$request" =~ ^deploy\ ([0-9a-f]{40})\ ([1-9][0-9]{0,19})\ ([1-9][0-9]{0,9})$ ]]; then
+  echo "Invalid deployment request."
+  exit 1
+fi
+revision="${BASH_REMATCH[1]:-}"
+run_id="${BASH_REMATCH[2]:-}"
+run_attempt="${BASH_REMATCH[3]:-}"
+
+# Operational commands may write sensitive configuration diagnostics to stderr.
+# Systemd captures those privately. Give CI only fixed statuses.
+exec 3>&1 1>&2
+trap 'printf "%s\n" "Home production operation failed; inspect the VM journal." >&3' ERR
+cd "$DEPLOY_PATH"
+if [[ "$request" == preflight ]]; then
+  if [[ -n "$github_token" ]]; then
+    echo "Unexpected preflight input." >&3
+    exit 1
+  fi
+  QUANTSELF_DEPLOY_TARGET=home bash scripts/preflight-production.sh "$DEPLOY_PATH"
+  QUANTSELF_PRODUCTION_HTTPS_IP="$PRODUCTION_HTTPS_IP" bash scripts/smoke-production.sh "$PRODUCTION_URL"
+else
+  if [[ "${QUANTSELF_DEPLOY_MODE:-legacy}" != legacy ]]; then
+    echo "Legacy deploy is disabled." >&3
+    exit 1
+  fi
+  if [[ "${BACKUP_READY_REVISION:-}" != "$revision" ]]; then
+    echo "Production backup readiness is not approved for this revision." >&3
+    exit 1
+  fi
+  if [[ ${#github_token} -ge 4096 || "$github_token" != *$'\n' ]]; then
+    echo "Invalid deployment credential." >&3
+    exit 1
+  fi
+  github_token="${github_token%$'\n'}"
+  if [[ ! "$github_token" =~ ^ghs_[A-Za-z0-9_.-]+$ ]]; then
+    echo "Invalid deployment credential." >&3
+    exit 1
+  fi
+  exec 9>>/run/lock/quantself-production.lock
+  flock -n 9 || { echo "Production maintenance is in progress." >&3; exit 1; }
+  if [[ -e /var/lib/quantself-atlas-keep || -L /var/lib/quantself-atlas-keep ]]; then
+    /usr/bin/python3 -I -B /usr/local/libexec/quantself-atlas/atlas-keep-deploy.py --assert-clear
+  fi
+  maintenance=/var/lib/keep-backup/production-maintenance.json
+  if [[ -e "$maintenance" || -L "$maintenance" ]]; then
+    echo "A coordinated backup or recovery is still active." >&3
+    exit 1
+  fi
+
+  repository='devdogfish/quantself'
+  api="repos/$repository"
+  workflow_path=".github/workflows/deploy.yml"
+  run="$(GH_TOKEN="$github_token" GH_DEBUG= GH_PROMPT_DISABLED=1 \
+    gh api --hostname github.com "$api/actions/runs/$run_id" 2>/dev/null)"
+  jq --exit-status --arg repo "$repository" --arg workflow "$workflow_path" \
+    --arg revision "$revision" --arg id "$run_id" --argjson attempt "$run_attempt" '
+    (.id | tostring) == $id and .event == "workflow_dispatch" and
+    .path == $workflow and .head_branch == "main" and
+    .head_sha == $revision and .run_attempt == $attempt and .status == "in_progress" and
+    .head_repository.full_name == $repo and .repository.full_name == $repo
+  ' <<< "$run" >/dev/null
+
+  image="${BACKUP_READY_IMAGE:-}"
+  [[ "$image" =~ ^sha256:[0-9a-f]{64}$ ]]
+  release="$DEPLOY_PATH/releases/${image#sha256:}"
+  python3 - "$release" "$image" "$revision" <<'PY'
+import sys
+from pathlib import Path
+
+sys.path.insert(0, "/usr/local/lib/keep-backup")
+from backup_guest import verify_production_release
+
+verify_production_release(Path(sys.argv[1]), sys.argv[2], sys.argv[3])
+PY
+
+  # Attach credentials only to the pinned HTTPS fetch and never save them to Git config.
+  credential_helper='!f() {
+    [ "$1" = get ] || return 0
+    protocol= host= path=
+    while IFS="=" read -r key value; do
+      case "$key" in
+        protocol) protocol="$value" ;;
+        host) host="$value" ;;
+        path) path="$value" ;;
+        "") break ;;
+      esac
+    done
+    [ "$protocol" = https ] && [ "$host" = github.com ] &&
+      [ "$path" = devdogfish/quantself.git ] || return 0
+    printf "username=x-access-token\npassword=%s\n\n" "$GH_TOKEN"
+  }; f'
+  GH_TOKEN="$github_token" GIT_TERMINAL_PROMPT=0 GIT_TRACE=0 GIT_TRACE_CURL=0 \
+    GIT_TRACE_PACKET=0 GIT_CURL_VERBOSE=0 GIT_TRACE2=0 \
+    git -c credential.helper= -c "credential.helper=$credential_helper" \
+      -c credential.useHttpPath=true -c http.followRedirects=false \
+      fetch --quiet --no-tags "https://github.com/$repository.git" refs/heads/main 2>/dev/null
+  unset github_token
+
+  if [[ "$(git rev-parse --verify FETCH_HEAD)" != "$revision" ]]; then
+    echo "Obsolete deploy rejected: fetched main differs from the approved revision." >&3
+    exit 1
+  fi
+  # The staged checkout may still contain the previous release's deploy script.
+  deploy_script="$(git show "$revision:scripts/deploy-production.sh")"
+  [[ -n "$deploy_script" ]]
+  QUANTSELF_DEPLOY_OWNER=github-actions QUANTSELF_DEPLOY_TARGET=home \
+    QUANTSELF_IMAGE_ARCHIVE="$release/app-image/image.tar.gz" QUANTSELF_IMAGE_ID="$image" \
+    QUANTSELF_PRODUCTION_HTTPS_IP="$PRODUCTION_HTTPS_IP" \
+    bash -c "$deploy_script" scripts/deploy-production.sh \
+      "$DEPLOY_PATH" "" "" "$revision" "$PRODUCTION_URL"
+fi
+printf '%s\n' QUANTSELF_DEPLOY_OK >&3

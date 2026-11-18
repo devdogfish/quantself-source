@@ -1,0 +1,162 @@
+name: Deploy production
+run-name: Deploy production · ${{ inputs.request_id }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      request_id:
+        description: Unique request ID emitted by the production command
+        required: true
+        type: string
+      deploy_target:
+        description: Production destination
+        type: choice
+        default: home
+        options:
+          - hostinger
+          - home
+      preflight_only:
+        description: Read-only production configuration and service checks; skip deployment
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: production-deploy
+  cancel-in-progress: false
+  queue: max
+
+jobs:
+  reject-legacy-deploy:
+    name: Preserve the retained Hostinger release
+    if: ${{ inputs.deploy_target == 'hostinger' && !inputs.preflight_only }}
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          echo "Current releases deploy to Keep. Use the retained release and rollback procedure for Hostinger." >&2
+          exit 1
+
+  preflight-hostinger:
+    name: Preflight Hostinger
+    if: ${{ inputs.deploy_target == 'hostinger' && inputs.preflight_only }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: production
+
+    env:
+      DEPLOY_PATH: ${{ vars.DEPLOY_PATH || '/root/quantself' }}
+
+    steps:
+      - name: Validate deployment configuration
+        run: test "$GITHUB_REF" = refs/heads/main
+
+      - name: Check out workflow revision
+        uses: actions/checkout@v6
+
+      - name: Configure SSH
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        run: |
+          set -euo pipefail
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          for attempt in 1 2 3 4 5; do
+            if ssh-keyscan -T 10 -H "$SSH_HOST" >> ~/.ssh/known_hosts; then
+              break
+            fi
+            if [ "$attempt" -eq 5 ]; then
+              exit 1
+            fi
+            sleep 10
+          done
+
+      - name: Read-only production preflight
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+        run: |
+          set -euo pipefail
+          ssh -i ~/.ssh/deploy_key -o BatchMode=yes -o ConnectTimeout=20 -o IdentitiesOnly=yes -o ServerAliveInterval=30 -o ServerAliveCountMax=3 \
+            "$SSH_USER@$SSH_HOST" "bash -s -- '$DEPLOY_PATH'" < scripts/preflight-production.sh
+
+  deploy-home:
+    name: Deploy over the private tailnet
+    if: ${{ inputs.deploy_target == 'home' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 75
+    environment: production-home
+    permissions:
+      actions: read
+      contents: read
+
+    steps:
+      - name: Require main and gate home deployment
+        env:
+          HOME_DEPLOY_ENABLED: ${{ vars.HOME_DEPLOY_ENABLED }}
+          PREFLIGHT_ONLY: ${{ inputs.preflight_only }}
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF" = refs/heads/main
+          if [[ "$PREFLIGHT_ONLY" != true ]]; then
+            test "$HOME_DEPLOY_ENABLED" = true
+          fi
+
+      - name: Check out workflow revision
+        if: ${{ !inputs.preflight_only }}
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+
+      - name: Require successful verification of the current main revision
+        if: ${{ !inputs.preflight_only }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: bash scripts/ci/require-verification.sh
+
+      - name: Join tailnet as ephemeral CI
+        uses: tailscale/github-action@064b10558093f38325e838ddea35486bdc6b1d5c # v4.4.0
+        with:
+          oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
+          oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
+          tags: tag:ci
+
+      - name: Preflight or deploy over pinned OpenSSH
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.SSH_KNOWN_HOSTS }}
+          PREFLIGHT_ONLY: ${{ inputs.preflight_only }}
+          DEPLOY_GITHUB_TOKEN: ${{ !inputs.preflight_only && github.token || '' }}
+        run: |
+          set +x
+          set -euo pipefail
+          github_token="$DEPLOY_GITHUB_TOKEN"
+          unset DEPLOY_GITHUB_TOKEN
+          [[ "$SSH_HOST" =~ ^[a-z0-9][a-z0-9.-]*[.]ts[.]net$ ]]
+          test -n "$SSH_PRIVATE_KEY" && test -n "$SSH_KNOWN_HOSTS"
+          tailscale ping --c=5 "$SSH_HOST"
+          umask 077
+          printf '%s\n' "$SSH_PRIVATE_KEY" > "$RUNNER_TEMP/deploy_key"
+          printf '%s\n' "$SSH_KNOWN_HOSTS" > "$RUNNER_TEMP/deploy_known_hosts"
+          trap 'rm -f "$RUNNER_TEMP/deploy_key" "$RUNNER_TEMP/deploy_known_hosts"' EXIT
+          ssh_command=(
+            ssh -i "$RUNNER_TEMP/deploy_key"
+            -o "UserKnownHostsFile=$RUNNER_TEMP/deploy_known_hosts"
+            -o GlobalKnownHostsFile=/dev/null -o StrictHostKeyChecking=yes
+            -o BatchMode=yes -o IdentitiesOnly=yes -o ConnectTimeout=20
+            -o ServerAliveInterval=30 -o ServerAliveCountMax=20
+            "deploy@$SSH_HOST"
+          )
+          if [[ "$PREFLIGHT_ONLY" == true ]]; then
+            "${ssh_command[@]}" preflight </dev/null
+          else
+            printf '%s\n' "$github_token" |
+              "${ssh_command[@]}" "deploy $GITHUB_SHA $GITHUB_RUN_ID $GITHUB_RUN_ATTEMPT"
+          fi

@@ -1,0 +1,42 @@
+{
+  "observedDateUtc": "2026-11-14",
+  "runId": "a1a0f32f0c054c8d994c9d33e3999251",
+  "owner": {
+    "viewerRead": 200,
+    "viewerOverwriteDenied": 403,
+    "viewerDeleteDenied": 403,
+    "viewerCreateDenied": 403,
+    "viewerUnchanged": 200,
+    "personalSentinelCreate": 201,
+    "personalSentinelRead": 200
+  },
+  "application": {
+    "originalsCreate": 201,
+    "originalsRead": 200,
+    "originalsUpdate": 204,
+    "originalsReadUpdated": 200,
+    "knownOwnerPersonalRead": 404,
+    "ownerPersonalWrite": 404,
+    "originalsDelete": 204,
+    "originalsAbsentAfterDelete": 404
+  },
+  "controls": {
+    "knownPersonalSentinelCreatedAndReadByOwner": true,
+    "originalsStillReadableByApplication": true,
+    "viewerCouldNotChangeOriginalsFixture": true
+  },
+  "remaining": [
+    "Full isolated restore permission proof remains pending"
+  ],
+  "rotation": {
+    "ownerHelperCompleted": true,
+    "priorTokenCount": 2,
+    "currentTokenCount": 1,
+    "createdAt": "2026-11-14T05:36:47.000Z",
+    "expiresAt": "2027-02-12T05:36:47.000Z",
+    "newCredentialAuthenticatedByAgent": true,
+    "oldCredential401": "verified by Owner-run helper before successful completion",
+    "priorTokenRevocation": "Owner-run helper revoked captured prior identifiers; agent independently verified only one token remains",
+    "apiHealthyAfterRotation": true
+  }
+}

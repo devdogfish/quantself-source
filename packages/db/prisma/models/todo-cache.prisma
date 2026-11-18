@@ -1,0 +1,33 @@
+// Disposable GitHub read projections. Capture evidence and command receipts are separate.
+model TodoCacheState {
+  scope      String @id
+  revision   Int @default(0)
+  generation Int @default(0)
+  metadata   Json
+  updatedAt  DateTime @updatedAt
+  @@map("todo_cache_state")
+}
+model TodoCacheProjection {
+  scope String
+  number Int
+  data Json
+  @@id([scope, number])
+  @@map("todo_cache_projection")
+}
+model TodoCacheEvent {
+  scope String
+  generation Int
+  data Json
+  createdAt DateTime @default(now())
+  @@id([scope, generation])
+  @@index([createdAt])
+  @@map("todo_cache_event")
+}
+model TodoWebhookDelivery {
+  scope String
+  delivery String
+  createdAt DateTime @default(now())
+  @@id([scope, delivery])
+  @@index([createdAt])
+  @@map("todo_webhook_delivery")
+}

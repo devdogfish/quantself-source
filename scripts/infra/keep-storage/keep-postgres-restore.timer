@@ -1,0 +1,8 @@
+[Unit]
+Description=Nightly isolated Keep PostgreSQL recovery drill
+
+[Timer]
+OnCalendar=*-*-* 04:30:00 America/Halifax
+
+[Install]
+WantedBy=timers.target

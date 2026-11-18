@@ -1,0 +1,14 @@
+services:
+  roundcube:
+    environment:
+      ROUNDCUBEMAIL_PLUGINS: quantself_original
+      QS_ROUNDCUBE_FIXTURE_PACKAGE: "${QS_ROUNDCUBE_FIXTURE_PACKAGE:?}"
+    volumes: !override
+      - ${QS_ROUNDCUBE_FIXTURE_STATE:?}/stage:/stage:ro
+      - ${QS_ROUNDCUBE_FIXTURE_STATE:?}/public.key:/package-input/public.key:ro
+      - ${QS_ROUNDCUBE_FIXTURE_STATE:?}/imap.crt:/package-input/imap.crt:ro
+      - ./package-config.php:/var/roundcube/config/package.php:ro
+      - ./package-install.sh:/entrypoint-tasks/post-setup/install-package:ro
+  http-proof:
+    environment:
+      QS_ROUNDCUBE_FIXTURE_PACKAGE: "${QS_ROUNDCUBE_FIXTURE_PACKAGE:?}"

@@ -1,0 +1,16 @@
+[Unit]
+Description=Private Quantself Roundcube IMAP observation socket
+
+[Socket]
+ListenStream=/run/quantself-roundcube-observer/observe.sock
+SocketUser=root
+SocketMode=0660
+DirectoryMode=0755
+Accept=yes
+Backlog=8
+MaxConnections=2
+MaxConnectionsPerSource=2
+RemoveOnStop=yes
+
+[Install]
+WantedBy=sockets.target

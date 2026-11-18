@@ -1,0 +1,13 @@
+name: quantself-vaultwarden
+version: 0.1.0
+description: "Use protected websites and read the Agent's business inbox through the private Vaultwarden service."
+author: Quantself
+kind: standalone
+platforms:
+  - linux
+provides_tools:
+  - quantself_website_sign_in
+  - quantself_website_read
+  - quantself_website_account
+  - quantself_website_submit
+  - quantself_business_mail

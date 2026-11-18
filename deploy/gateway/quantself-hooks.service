@@ -1,0 +1,20 @@
+[Unit]
+Description=Quantself webhook relay on Gate
+Requires=quantself-hooks-firewall.service
+After=network-online.target tailscaled.service quantself-hooks-firewall.service
+Wants=network-online.target tailscaled.service
+
+[Service]
+DynamicUser=yes
+EnvironmentFile=/etc/quantself-hooks/relay.env
+StateDirectory=quantself-hooks
+Environment=XDG_CONFIG_HOME=/var/lib/quantself-hooks
+Environment=XDG_DATA_HOME=/var/lib/quantself-hooks
+ExecStartPre=/usr/local/bin/caddy validate --config /etc/quantself-hooks/Gate.Caddyfile --adapter caddyfile
+ExecStart=/usr/local/bin/caddy run --config /etc/quantself-hooks/Gate.Caddyfile --adapter caddyfile
+Restart=on-failure
+RestartSec=5s
+NoNewPrivileges=yes
+
+[Install]
+WantedBy=multi-user.target

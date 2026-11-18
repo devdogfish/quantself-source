@@ -1,0 +1,80 @@
+{
+  "startedAt": "2026-11-14T02:24:06.166Z",
+  "completedAt": "2026-11-14T02:24:20.953Z",
+  "outcome": "PASS",
+  "checks": [
+    {
+      "name": "OIDC browser authentication; password Basic auth disabled"
+    },
+    {
+      "name": "Dedicated original-files space; application Editor and Owner Viewer"
+    },
+    {
+      "name": "Application uses expiring app token; account password Basic authentication remains disabled"
+    },
+    {
+      "name": "Application cannot read personal documents; anonymous/outsider cannot access originals"
+    },
+    {
+      "name": "receipt uploaded, retry guarded, hash verified, Owner read-only",
+      "bytes": 27988
+    },
+    {
+      "name": "recording uploaded, retry guarded, hash verified, Owner read-only",
+      "bytes": 81392
+    },
+    {
+      "name": "Both originals browsable by meaningful WebDAV filenames"
+    },
+    {
+      "name": "Owner browses receipt folder in real OpenCloud web interface"
+    },
+    {
+      "name": "Audio byte ranges exact",
+      "contentRange": "bytes 100-999/81392"
+    },
+    {
+      "name": "Rename retains file ID; original retrievable by ID; stale path returns 404"
+    },
+    {
+      "name": "Chromium receipt rendering and audio playback/seeking through streaming proxy",
+      "duration": 8.008,
+      "before": 0.032,
+      "after": 5,
+      "imageWidth": 1280
+    },
+    {
+      "name": "Proof proxy rejects unauthenticated media access"
+    },
+    {
+      "name": "Record listing is PostgreSQL-only",
+      "opencloudRequests": 0,
+      "rows": 2
+    },
+    {
+      "name": "Restored into new OpenCloud volumes + separate PostgreSQL database: hashes, references and permissions preserved"
+    },
+    {
+      "name": "Restored receipt rendering and audio playback/seeking",
+      "duration": 8.008,
+      "before": 0.032,
+      "after": 5,
+      "imageWidth": 1280
+    },
+    {
+      "name": "Expired application token rejected"
+    },
+    {
+      "name": "Credential rotation works; revoked application token rejected"
+    }
+  ],
+  "image": "opencloudeu/opencloud:7.2.5@sha256:26fcc6f69d71937af015be73c585e7c36d1945d547fa2a6f706118283f1bcd6b",
+  "environment": "Local Mac Docker; isolated synthetic #252 harness; not Keep or real Quantself routes",
+  "requestCount": 57,
+  "limitations": [
+    "Eight-second synthetic recording; no realistic-size Keep latency test",
+    "Self-signed localhost TLS; no trusted production TLS assertion",
+    "No PBS or S3 backup exercised",
+    "Application routes and #253 contract not tested"
+  ]
+}

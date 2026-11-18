@@ -1,0 +1,12 @@
+{
+	admin off
+	auto_https off
+	grace_period 30s
+}
+
+http://:9201 {
+	bind 127.0.0.1
+	reverse_proxy 127.0.0.1:9200 {
+		header_up X-Forwarded-Proto https
+	}
+}

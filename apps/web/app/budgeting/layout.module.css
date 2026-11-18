@@ -1,0 +1,26 @@
+:global(html):has(.budgeting) {
+  overscroll-behavior-y: none;
+}
+
+.budgeting {
+  min-width: 0;
+}
+
+.budgeting:has(> [data-budget-overview]) {
+  max-width: 90rem;
+  gap: 0.875rem;
+}
+
+.budgeting:has(> [data-budget-overview])::before {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  background: light-dark(#f5f6f8, var(--chakra-colors-bg));
+  content: "";
+}
+
+.budgeting:has(> [data-budget-overview]) {
+  position: relative;
+  isolation: isolate;
+  min-height: 100%;
+}

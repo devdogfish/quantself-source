@@ -1,0 +1,29 @@
+{
+	admin off
+	auto_https off
+}
+
+import webhooks.caddy
+import owner-headers.caddy
+
+(keep_webhook_origin) {
+	reverse_proxy http://{$QUANTSELF_TAILNET_IP}:8443 {
+		header_up Host hooks.girke.dev
+		header_up -Cookie
+		header_up -Authorization
+	}
+}
+
+http://:8780 {
+	bind {$GATE_TAILNET_IP}
+	import strip_owner_identity
+	@relay host hooks.girke.dev
+	@hostinger remote_ip {$HOSTINGER_TAILNET_IP}
+	handle @relay {
+		handle @hostinger {
+			import webhooks keep_webhook_origin keep_webhook_origin
+		}
+		respond 404
+	}
+	respond 404
+}

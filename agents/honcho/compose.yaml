@@ -1,0 +1,101 @@
+name: quantself-honcho
+
+x-honcho: &honcho
+  # Honcho v3.6.1, linux/amd64
+  image: ghcr.io/plastic-labs/honcho@sha256:07d3e9c14914847095808d8e0fb631cc1a4c44a00abf187a3235ee2fe9557b79
+  restart: unless-stopped
+  networks: [edge, data]
+  volumes:
+    - type: bind
+      source: ${HONCHO_TOKENIZER_DIR:-/var/lib/honcho/tokenizers}
+      target: /app/tokenizers
+      read_only: true
+      bind:
+        create_host_path: false
+
+x-honcho-environment: &honcho-environment
+  CACHE_ENABLED: "true"
+  CACHE_URL: redis://cache:6379/0?suppress=true
+  DB_POOL_SIZE: "10"
+  DB_MAX_OVERFLOW: "4"
+  LOG_LEVEL: WARNING
+  TIKTOKEN_CACHE_DIR: /app/tokenizers
+
+services:
+  api:
+    <<: *honcho
+    entrypoint: [sh, docker/entrypoint.sh]
+    env_file:
+      - ${HONCHO_CONFIG_DIR:-/etc/honcho}/runtime.env
+      - ${HONCHO_CONFIG_DIR:-/etc/honcho}/api-auth.env
+    environment:
+      <<: *honcho-environment
+      API_WORKERS: "1"
+      AUTH_USE_AUTH: "true"
+    ports:
+      - "127.0.0.1:18081:8000"
+    depends_on:
+      database:
+        condition: service_healthy
+      cache:
+        condition: service_healthy
+    healthcheck:
+      test: [CMD, /app/.venv/bin/python, -c, "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=2).close()"]
+      interval: 5s
+      timeout: 3s
+      retries: 6
+      start_period: 45s
+
+  deriver:
+    <<: *honcho
+    entrypoint: [/app/.venv/bin/python, -m, src.deriver]
+    env_file:
+      - ${HONCHO_CONFIG_DIR:-/etc/honcho}/runtime.env
+    environment:
+      <<: *honcho-environment
+      DERIVER_WORKERS: "1"
+    depends_on:
+      api:
+        condition: service_healthy
+
+  database:
+    # pgvector/pgvector:pg15, linux/amd64
+    image: docker.io/pgvector/pgvector@sha256:bbba5bcbcd2ccb8d8a577a3db2d7de9af71d8a6bbdddbc3d9d8a3723d290f078
+    restart: unless-stopped
+    command: [postgres, -c, max_connections=40]
+    environment:
+      POSTGRES_DB: honcho
+      POSTGRES_USER: honcho
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
+      POSTGRES_HOST_AUTH_METHOD: scram-sha-256
+    secrets: [postgres_password]
+    volumes:
+      - ${HONCHO_DATA_DIR:-/var/lib/honcho/postgres}:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/10-honcho.sql:ro
+    networks: [data]
+    healthcheck:
+      test: [CMD, pg_isready, -h, 127.0.0.1, -U, honcho, -d, honcho]
+      interval: 5s
+      timeout: 3s
+      retries: 6
+
+  cache:
+    # Redis 8.2, linux/amd64. PostgreSQL owns durable data and the deriver queue.
+    image: docker.io/library/redis@sha256:c13389a69fa54b26002fb052b062be6175f915e314d38969f7293ffc27b02d31
+    restart: unless-stopped
+    command: [redis-server, --save, "", --appendonly, "no"]
+    networks: [data]
+    healthcheck:
+      test: [CMD, redis-cli, ping]
+      interval: 5s
+      timeout: 3s
+      retries: 6
+
+secrets:
+  postgres_password:
+    file: ${HONCHO_CONFIG_DIR:-/etc/honcho}/postgres-password
+
+networks:
+  edge: {}
+  data:
+    internal: true

@@ -1,0 +1,31 @@
+.root { min-width: 0; }
+.content { min-height: 21px; max-height: 240px; overflow-y: auto; overflow-wrap: anywhere; outline: none; border: 0; background: transparent; color: var(--chakra-colors-fg); font-size: 14px; line-height: 1.5; }
+.content:focus { outline: none; }
+.content > :first-child { margin-top: 0; }
+.content > :last-child { margin-bottom: 0; }
+.content p { margin: 0 0 6px; }
+.content p:global(.is-editor-empty):first-child::before { color: var(--chakra-colors-fg-muted); content: attr(data-placeholder); float: left; height: 0; pointer-events: none; }
+.content strong { font-weight: 600; }
+.content em { font-style: italic; }
+.content s { text-decoration: line-through; }
+.content a { text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.content ul { list-style: disc; padding-left: 22px; margin-block: 6px; }
+.content ol { list-style: decimal; padding-left: 22px; margin-block: 6px; }
+.content li p { margin-bottom: 2px; }
+.content h1, .content h2, .content h3, .content h4, .content h5, .content h6 { font-weight: 600; margin-block: 8px 4px; }
+.content h1 { font-size: 18px; } .content h2 { font-size: 16px; } .content h3 { font-size: 14px; }
+.content blockquote { margin-block: 8px; padding-left: 12px; border-left: 2px solid var(--chakra-colors-border); color: var(--chakra-colors-fg-muted); }
+.content code { border-radius: 3px; background: var(--chakra-colors-bg-muted); padding: 1px 3px; font-size: 12px; }
+.content pre { overflow-x: auto; padding: 8px; border-radius: 5px; background: var(--chakra-colors-bg-muted); }
+.content pre code { padding: 0; }
+.content hr { border-top: 1px solid var(--chakra-colors-border); margin-block: 10px; }
+.content table { border-collapse: collapse; margin-block: 8px; width: 100%; }
+.content th, .content td { border: 1px solid var(--chakra-colors-border); padding: 4px 6px; }
+.content th { font-weight: 600; }
+.content img { max-width: 100%; height: auto; border-radius: 5px; }
+.content ul[data-type="taskList"] { list-style: none; padding-left: 0; }
+.content [data-markdown-link-syntax] { color: var(--chakra-colors-fg-muted); }
+.content a[data-markdown-link-label], .content a:has([data-markdown-link-label]) { cursor: text; text-decoration: none; }
+.source { display: block; width: 100%; resize: vertical; padding: 8px; border: 1px solid var(--chakra-colors-border); border-radius: 4px; font-family: var(--chakra-fonts-mono); font-size: 14px; line-height: 1.5; }
+.content li[data-type="taskItem"] { display: flex; align-items: flex-start; gap: 8px; }
+.content li[data-type="taskItem"] > div { min-width: 0; flex: 1; }

@@ -1,0 +1,16 @@
+.root { min-width: 0; color: var(--chakra-colors-fg); font-size: 14px; line-height: 1.5; }
+.expand { display: block; width: 100%; padding: 0; border: 0; background: transparent; color: var(--chakra-colors-fg-muted); font: inherit; text-align: left; cursor: text; }
+.expanded { display: flex; flex-direction: column; gap: 10px; }
+.urls { display: flex; flex-direction: column; gap: 5px; }
+.urlEntry { min-width: 0; }
+.urlRow { position: relative; display: flex; width: 100%; min-width: 0; align-items: center; cursor: text; }
+.input { flex: 1; min-width: 0; width: 100%; padding: 0; border: 0; border-radius: 0; background: transparent; color: var(--chakra-colors-fg); font: inherit; line-height: 1.5; box-shadow: none; }
+.input:focus, .input:focus-visible { outline: none; border: 0; box-shadow: none; }
+.input::placeholder { color: var(--chakra-colors-fg-muted); opacity: 1; }
+.input[aria-invalid="true"] { color: var(--chakra-colors-fg-error); }
+.displayInput { position: absolute; inset: 0; opacity: 0; pointer-events: none; }
+.link { min-width: 0; color: #007aff; text-decoration: underline; text-underline-offset: 2px; overflow-wrap: anywhere; }
+.text { min-width: 0; overflow-wrap: anywhere; cursor: text; }
+.attachment { width: fit-content; min-width: 0; height: auto; min-height: 1.5em; padding: 1px 4px; margin: -1px 0 -1px -4px; align-self: flex-start; border: 0; border-radius: 5px; color: var(--chakra-colors-fg-muted); font: inherit; text-align: left; justify-content: flex-start; cursor: default; opacity: 1; }
+.attachment:hover { background: color-mix(in srgb, var(--chakra-colors-fg) 8%, transparent); }
+.expand:focus-visible { outline: 2px solid var(--chakra-colors-brand-focus-ring); outline-offset: 3px; }

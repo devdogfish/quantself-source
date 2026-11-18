@@ -1,0 +1,13 @@
+FROM oven/bun@sha256:e10577f0db68676a7024391c6e5cb4b879ebd17188ab750cf10024a6d700e5c4
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+      chromium=156.0.8078.79-1~deb13u1 chromium-common=156.0.8078.79-1~deb13u1 \
+      python3-venv=3.13.5-1 poppler-utils=25.03.0-5+deb13u4 fonts-liberation=1:2.1.5-3 \
+    && rm -rf /var/lib/apt/lists/*
+RUN python3 -m venv /opt/jobs-python \
+    && /opt/jobs-python/bin/pip install --disable-pip-version-check --no-cache-dir Markdown==3.11.3 pypdf==7.0.0
+
+# The closed fixture runs as root and Chromium cannot start its own sandbox there.
+RUN printf '%s\n' '#!/bin/sh' 'exec /usr/bin/chromium --no-sandbox --disable-dev-shm-usage "$@"' \
+      > /usr/local/bin/chromium \
+    && chmod 0755 /usr/local/bin/chromium

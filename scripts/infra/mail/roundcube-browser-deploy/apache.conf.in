@@ -1,0 +1,59 @@
+ServerRoot "/etc/apache2"
+Listen 127.0.0.1:@PORT@
+ServerName https://@AUTHORITY@
+PidFile "/run/quantself-roundcube/httpd.pid"
+DefaultRuntimeDir "/run/quantself-roundcube"
+ErrorLog /dev/null
+LogLevel crit
+ServerTokens Prod
+ServerSignature Off
+TraceEnable Off
+
+Include mods-available/mpm_prefork.load
+Include mods-available/authz_core.load
+Include mods-available/dir.load
+Include mods-available/headers.load
+Include mods-available/mime.load
+Include mods-available/setenvif.load
+Include mods-available/php8.4.load
+TypesConfig /etc/mime.types
+User quantself-roundcube-browser
+Group quantself-roundcube-browser
+StartServers 1
+MinSpareServers 1
+MaxSpareServers 3
+MaxRequestWorkers 8
+
+DocumentRoot "/opt/quantself-roundcube/browser/release/public_html"
+DirectoryIndex index.php
+SetEnvIf X-Forwarded-Proto "^https$" HTTPS=on
+Header always set X-Content-Type-Options "nosniff"
+Header always set X-Robots-Tag "noindex, nofollow"
+
+<Directory "/">
+    Require all denied
+    AllowOverride None
+</Directory>
+<Directory "/opt/quantself-roundcube/browser/release/public_html">
+    <RequireAll>
+        Require expr %{HTTP_HOST} == '@AUTHORITY@'
+        Require expr req('X-Forwarded-Proto') == 'https'
+        Require expr -z req('Tailscale-Funnel-Request')
+    </RequireAll>
+    Options -Indexes -FollowSymLinks
+    AcceptPathInfo On
+    php_admin_flag display_errors Off
+    php_admin_flag log_errors On
+    php_admin_value error_log /run/quantself-roundcube/logs/php.log
+    php_admin_value sys_temp_dir /run/quantself-roundcube/tmp
+    php_admin_value upload_tmp_dir /run/quantself-roundcube/tmp
+    php_admin_value session.save_path /run/quantself-roundcube/session
+    php_admin_value session.cookie_secure 1
+    php_admin_value expose_php 0
+    <FilesMatch "\.php$">
+        SetHandler application/x-httpd-php
+    </FilesMatch>
+    <FilesMatch "(^\.|^installer\.php$)">
+        Require all denied
+    </FilesMatch>
+</Directory>

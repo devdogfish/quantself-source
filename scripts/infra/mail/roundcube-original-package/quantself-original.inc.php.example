@@ -1,0 +1,24 @@
+<?php
+// Load through the site's Roundcube config after replacing these explicit placeholders.
+$jobsImapHost = 'replace.invalid';
+$config['plugins'][] = 'quantself_original';
+$config['quantself_original'] = [
+    'mode' => 'guarded-v1',
+    'audience' => 'replace.invalid',
+    'base_path' => '/',
+    'public_key_base64' => '', // Standard base64 of the API's 32-byte Ed25519 public key.
+    'spool_dir' => '/run/quantself-original-spool',
+];
+$config['quantself_original_mailbox'] = [
+    'account' => 'replace@replace.invalid',
+    'host' => $jobsImapHost,
+    'port' => 993,
+];
+$config['imap_host'] = "ssl://{$jobsImapHost}:993";
+$config['imap_conn_options'] = ['ssl' => [
+    'verify_peer' => true,
+    'verify_peer_name' => true,
+    'allow_self_signed' => false,
+]];
+$config['imap_cache'] = null;
+$config['messages_cache'] = false;

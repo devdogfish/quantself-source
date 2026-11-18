@@ -1,0 +1,43 @@
+name: keep-vault
+services:
+  opencloud:
+    image: opencloudeu/opencloud:7.2.5@sha256:26fcc6f69d71937af015be73c585e7c36d1945d547fa2a6f706118283f1bcd6b
+    user: '1000:1000'
+    # Dedicated Vault VM. Loopback backend also lets OIDC reach the VM's TLS proxy
+    # without allowing containers to reach arbitrary host services.
+    network_mode: host
+    environment:
+      OC_URL: "${KEEP_OPENCLOUD_URL:?prepare the private Compose bundle}"
+      OC_INSECURE: 'false'
+      PROXY_TLS: 'false'
+      PROXY_HTTP_ADDR: 127.0.0.1:9200
+      PROXY_ENABLE_BASIC_AUTH: 'false'
+      IDM_CREATE_DEMO_USERS: 'false'
+      STORAGE_USERS_DRIVER: posix
+      OC_LOG_LEVEL: warn
+    volumes:
+      - /srv/opencloud/config:/etc/opencloud
+      - /srv/opencloud/data:/var/lib/opencloud
+    restart: unless-stopped
+    stop_grace_period: 90s
+    mem_limit: 1536m
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: '3'
+
+  vault-gateway:
+    image: caddy:2.11.4-alpine@sha256:6aeddd44c3078b0f9a35206472a11420648a79c184603ef95957d0a20044cb2b
+    network_mode: host
+    restart: unless-stopped
+    stop_grace_period: 45s
+    mem_limit: 128m
+    volumes:
+      - ./vault.Caddyfile:/etc/caddy/Caddyfile:ro
+    depends_on: [opencloud]
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: '3'

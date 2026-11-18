@@ -1,0 +1,53 @@
+#cloud-config
+# New #254 guests only. Owner-approved key-only SSH bootstrap.
+hostname: __VM_HOSTNAME__
+preserve_hostname: false
+manage_etc_hosts: true
+users:
+  - name: devdogfish
+    gecos: Owner
+    groups: [sudo]
+    shell: /bin/bash
+    lock_passwd: true
+    ssh_authorized_keys:
+      - __OWNER_PUBLIC_KEY__
+disable_root: true
+ssh_pwauth: false
+package_update: true
+packages:
+  - ca-certificates
+  - curl
+  - gnupg
+  - qemu-guest-agent
+  - docker.io
+  - docker-compose
+  - nftables
+  - unattended-upgrades
+write_files:
+  - path: /etc/sudoers.d/90-bringup
+    owner: root:root
+    permissions: '0440'
+    content: |
+      devdogfish ALL=(ALL) NOPASSWD: ALL
+  - path: /etc/ssh/sshd_config.d/00-owner-key-only.conf
+    owner: root:root
+    permissions: '0644'
+    content: |
+      PermitRootLogin no
+      PasswordAuthentication no
+      KbdInteractiveAuthentication no
+      PubkeyAuthentication yes
+      AllowUsers devdogfish
+  - path: /etc/apt/apt.conf.d/20auto-upgrades
+    owner: root:root
+    permissions: '0644'
+    content: |
+      APT::Periodic::Update-Package-Lists "1";
+      APT::Periodic::Unattended-Upgrade "1";
+runcmd:
+  - [visudo, -c]
+  - [sshd, -t]
+  - [systemctl, reload, ssh]
+  - [systemctl, enable, --now, qemu-guest-agent]
+  - [systemctl, enable, --now, docker]
+  - [systemctl, enable, --now, apt-daily.timer, apt-daily-upgrade.timer]

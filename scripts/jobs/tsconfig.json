@@ -1,0 +1,29 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "lib": [
+      "ESNext",
+      "DOM"
+    ],
+    "strict": true,
+    "noEmit": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "types": [
+      "node",
+      "bun"
+    ],
+    "typeRoots": [
+      "../../node_modules/@types",
+      "../../apps/api/node_modules/@types"
+    ]
+  },
+  "include": [
+    "*.ts"
+  ],
+  "exclude": [
+    "*.test.ts"
+  ]
+}

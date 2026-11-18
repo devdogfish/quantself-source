@@ -1,0 +1,34 @@
+services:
+  imap-fixture:
+    environment:
+      QS_ROUNDCUBE_FIXTURE_HTTPS: "1"
+      QS_ROUNDCUBE_FIXTURE_SPOOL: "${QS_ROUNDCUBE_FIXTURE_SPOOL:-0}"
+      QS_ROUNDCUBE_FIXTURE_SOURCE: "${QS_ROUNDCUBE_FIXTURE_SOURCE:-0}"
+      QS_ROUNDCUBE_FIXTURE_DISPLAY: "${QS_ROUNDCUBE_FIXTURE_DISPLAY:-0}"
+    networks:
+      default:
+        aliases: [imap-wrong-name]
+  roundcube:
+    environment:
+      QS_ROUNDCUBE_FIXTURE_HTTPS: "1"
+      QS_ROUNDCUBE_FIXTURE_IMAP_TLS_FAULT: "${QS_ROUNDCUBE_FIXTURE_IMAP_TLS_FAULT:-}"
+    volumes:
+      - ${QS_ROUNDCUBE_FIXTURE_STATE:?}/imap.crt:/fixture/imap.crt:ro
+    tmpfs:
+      - "/tmp:size=32m,mode=1777"
+  edge:
+    image: caddy:2.11.4-alpine@sha256:5f5c8640aae01df9654968d946d8f1a56c497f1dd5c5cda4cf95ab7c14d58648
+    networks:
+      default:
+        aliases: [roundcube.jobs.example.test]
+    volumes:
+      - ./joined-https.Caddyfile:/etc/caddy/Caddyfile:ro
+      - ${QS_ROUNDCUBE_FIXTURE_STATE:?}/roundcube.crt:/fixture-tls/roundcube.crt:ro
+      - ${QS_ROUNDCUBE_FIXTURE_STATE:?}/roundcube.key:/fixture-tls/roundcube.key:ro
+  http-proof:
+    environment:
+      QS_ROUNDCUBE_FIXTURE_HTTPS: "1"
+      QS_ROUNDCUBE_FIXTURE_SPOOL: "${QS_ROUNDCUBE_FIXTURE_SPOOL:-0}"
+      QS_ROUNDCUBE_FIXTURE_SOURCE: "${QS_ROUNDCUBE_FIXTURE_SOURCE:-0}"
+      QS_ROUNDCUBE_FIXTURE_DISPLAY: "${QS_ROUNDCUBE_FIXTURE_DISPLAY:-0}"
+      QS_ROUNDCUBE_FIXTURE_IMAP_TLS_FAULT: "${QS_ROUNDCUBE_FIXTURE_IMAP_TLS_FAULT:-}"

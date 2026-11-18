@@ -1,0 +1,42 @@
+model BudgetCheckIn {
+  ownerId String
+  date String
+
+  @@id([ownerId, date])
+  @@map("budget_check_in")
+}
+
+model BudgetSkippedSpending {
+  ownerId String
+  id String
+  date String
+  label String
+  cents Int
+
+  @@id([ownerId, id])
+  @@index([ownerId, date, id])
+  @@map("budget_skipped_spending")
+}
+
+model BudgetWeeklyLimit {
+  ownerId String
+  week String
+  allowance String
+  cents Int?
+
+  @@id([ownerId, allowance, week])
+  @@index([ownerId, week])
+  @@map("budget_weekly_limit")
+}
+
+model BudgetTransactionCommand {
+  ownerId String
+  id String
+  sessionId String?
+  fingerprint String
+  result Json
+
+  @@id([ownerId, id])
+  @@index([ownerId, sessionId])
+  @@map("budget_transaction_command")
+}

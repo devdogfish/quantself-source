@@ -1,0 +1,15 @@
+model AgentInboxTodo {
+  id              String    @id @default(uuid())
+  ownerId         String
+  title           String
+  note            String
+  revision        Int       @default(1)
+  createdAt       DateTime  @default(now())
+  completedAt     DateTime?
+  cancelledAt     DateTime?
+  creationAuditId String    @unique
+  creationAudit   AgentWriteAudit @relation(fields: [creationAuditId], references: [id], onDelete: Restrict)
+
+  @@index([ownerId, cancelledAt, completedAt, createdAt, id], map: "agent_inbox_todo_owner_list_idx")
+  @@map("agent_inbox_todo")
+}

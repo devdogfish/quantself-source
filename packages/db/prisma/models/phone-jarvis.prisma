@@ -1,0 +1,20 @@
+// Delivery/authentication state only. Tasks remain authoritative in GitHub.
+model PhoneJarvisCall {
+  id String @id @default(uuid())
+  callSid String? @unique
+  slot String? @unique
+  direction String
+  captureId String @unique @default(uuid())
+  expiresAt DateTime
+  attempts Int @default(0)
+  authenticated Boolean @default(false)
+  connection String @default("pending")
+  status String @default("created")
+  conversationId String? @unique
+  archivedAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index([archivedAt, createdAt])
+  @@index([createdAt, id])
+  @@map("phone_jarvis_call")
+}

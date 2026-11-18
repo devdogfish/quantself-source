@@ -1,0 +1,31 @@
+name: Provision production runtime configuration
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: production-deploy
+  cancel-in-progress: false
+jobs:
+  provision:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v6
+      - name: Securely provision allowlisted runtime values
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+          DEPLOY_PATH: ${{ vars.DEPLOY_PATH || '/root/quantself' }}
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          RUNTIME_CONFIGURATION: ${{ secrets.QUANTSELF_RUNTIME_CONFIGURATION }}
+        run: |
+          set -euo pipefail
+          test -n "$RUNTIME_CONFIGURATION"
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -T 20 -H "$SSH_HOST" >> ~/.ssh/known_hosts
+          # Code is public repository content; credential payload only travels over SSH stdin.
+          script_base64=$(base64 < scripts/provision-runtime-env.py | tr -d '\n')
+          printf '%s' "$RUNTIME_CONFIGURATION" | ssh -i ~/.ssh/deploy_key -o BatchMode=yes -o IdentitiesOnly=yes "$SSH_USER@$SSH_HOST" "python3 -c \"import base64; exec(base64.b64decode('$script_base64'))\" '$DEPLOY_PATH/.env'"

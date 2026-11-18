@@ -1,0 +1,368 @@
+{
+  "restoreId": "20261114T065840Z-d419ee3d4cd9",
+  "status": "PBS application recovery and browser playback verified",
+  "pbsAlias": "backup-restore-254",
+  "independentOwnerKeyVerified": true,
+  "pbsEncryptionFingerprint": "19:2e:7a:95:6e:86:d1:e8:3c:68:fb:85:95:6b:42:e5:90:c0:db:ac:fc:5c:9c:f3:dd:3c:6c:a9:fc:22:a8:30",
+  "clones": {
+    "files": {
+      "vmId": 2542,
+      "sourceVolume": "backup:backup/vm/2540/2026-11-14T07:00:10Z",
+      "taskIdentifier": "UPID:keep:0001B20E:0032B412:6AF8099B:qmrestore:2542:",
+      "taskExitStatus": "OK",
+      "poweredOffAtPhase1Verification": true,
+      "networkInterfacesAtPhase1Verification": 0,
+      "disconnectedBoot": {
+        "verified": true,
+        "runningServices": [],
+        "shutdown": "verified stopped",
+        "cloudInitDisabled": true,
+        "restartPoliciesMatched": true
+      },
+      "nativeAudit": {
+        "status": "passed",
+        "entriesVerified": 770,
+        "nativeMountsMatch": true,
+        "imageIdsMatch": true
+      },
+      "offlinePreparation": {
+        "status": "prepared_stopped",
+        "networkInterfaces": 0,
+        "originalContainerRestartPolicy": "no",
+        "restoreFirewallDependencyVerified": true
+      },
+      "isolatedBoot": {
+        "state": "running isolated",
+        "mac": "02:54:00:00:02:42",
+        "address": "192.0.2.42/24",
+        "originalContainersExited": 2,
+        "originalContainerRestartPolicy": "no"
+      },
+      "vaultRuntime": {
+        "status": "started on isolated clone",
+        "ownerInstalledTestTls": true,
+        "trustedTlsVerified": true,
+        "isolatedIssuerVerified": true,
+        "verificationVantagePoints": [
+          "Keep test namespace",
+          "Mac tunnel"
+        ],
+        "openCloudRestart": {
+          "status": "verified",
+          "journal": "manual-pbs-vault-restart.json",
+          "postRestartChecks": [
+            "PNG original rendered in the Owner browser",
+            "PDF original downloaded and hash verified",
+            "17 isolated Vault permission checks passed"
+          ]
+        }
+      }
+    },
+    "quantself": {
+      "vmId": 2543,
+      "sourceVolume": "backup:backup/vm/2541/2026-11-14T07:00:54Z",
+      "taskIdentifier": "UPID:keep:0001B7FF:00333306:6AF80AE0:qmrestore:2543:",
+      "taskExitStatus": "OK",
+      "poweredOffAtPhase1Verification": true,
+      "networkInterfacesAtPhase1Verification": 0,
+      "disconnectedBoot": {
+        "verified": true,
+        "runningServices": [
+          "postgres"
+        ],
+        "shutdown": "verified stopped",
+        "cloudInitDisabled": true,
+        "restartPoliciesMatched": true
+      },
+      "nativeAudit": {
+        "status": "passed",
+        "entriesVerified": 16,
+        "nativeMountsMatch": true,
+        "imageIdsMatch": true,
+        "postgresChecks": true,
+        "schemaMigrationsMatched": 66,
+        "syntheticOriginalRowsMatched": 3
+      },
+      "offlinePreparation": {
+        "status": "prepared_stopped",
+        "networkInterfaces": 0,
+        "originalContainersExited": 6,
+        "originalContainerRestartPolicy": "no",
+        "restoreFirewallConfigured": true,
+        "dockerRequiresRestoreFirewall": true,
+        "ipv6Disabled": true
+      },
+      "isolatedBoot": {
+        "state": "running isolated",
+        "mac": "02:54:00:00:02:43",
+        "address": "192.0.2.43/24",
+        "originalContainersExited": 6,
+        "originalContainerRestartPolicy": "no"
+      },
+      "functionalPostgres": {
+        "status": "imported_counts_verified",
+        "database": "quantself_restore_ui",
+        "migrationCount": 66,
+        "counts": {
+          "users": 1,
+          "owner_users": 1,
+          "markers": 1,
+          "owner_markers": 1,
+          "owner_sessions": 2,
+          "other_sessions": 0,
+          "setup_tokens": 2,
+          "owner_passkeys": 1
+        },
+        "authReset": {
+          "status": "approved and committed",
+          "postResetCounts": {
+            "users": 1,
+            "passkeys": 1,
+            "markers": 0,
+            "sessions": 0,
+            "setupTokens": 0
+          }
+        }
+      },
+      "functionalApp": {
+        "status": "started and healthy",
+        "startupExitCode": 0,
+        "trustedHttpsVerifiedFromKeepNamespace": true,
+        "macHealthHttpStatus": 200,
+        "macTlsVerifyResult": 0,
+        "verifiedRuntimeImages": 4,
+        "apiMountsVerified": true,
+        "ownerPasskeyLogin": "Owner session verified in Brave",
+        "isolatedVaultTokenExpiresAt": "2026-11-16T00:00:00-04:00",
+        "browserAcceptance": {
+          "browser": "Brave",
+          "ownerEnrollmentCounts": {
+            "markers": 1,
+            "passkeys": 2,
+            "sessions": 1,
+            "setupTokensUsed": 1,
+            "openSetupTokens": 0
+          },
+          "ownerWebClientAccessContextVerified": true,
+          "mainPageLoginLoop": {
+            "status": "resolved in patched isolated PBS web runtime",
+            "appExternalSelfHttpsExitCode": 23,
+            "internalApiHttpStatus": 200,
+            "nextRuntime": {
+              "version": "16.2.9",
+              "hostname": "0.0.0.0",
+              "port": 3000
+            },
+            "proxyDerivedHttpsSelfRequest": "connection refused",
+            "isolatedSelfOriginRemediation": {
+              "unit": "keep254-pbs-self-origin",
+              "exitCode": 0,
+              "httpsVerified": true,
+              "redirectLoopPersisted": true
+            },
+            "sourceFix": {
+              "commit": "0560c98e37c8631c4956f0cf95e7f137a2c81aee",
+              "usesInternalApi": true,
+              "focusedTestsPassed": 13,
+              "typecheck": "passed",
+              "fullTests": {
+                "passed": 1746,
+                "skipped": 12,
+                "failed": 3
+              },
+              "ciRun": 43612415589,
+              "ciStatus": "passed",
+              "deployed": true,
+              "archivedImageChanged": false,
+              "focusedUiRerun": {
+                "passed": 7,
+                "failed": 0,
+                "timeZone": "America/Halifax"
+              },
+              "supervisorFailure": "Port 47329 occupied by an external development process",
+              "ciTests": {
+                "passed": 1748,
+                "failed": 0,
+                "skipped": 13,
+                "shards": 16
+              },
+              "ciTypecheck": "passed",
+              "replacementArtifact": "verified and loaded; patch applied to isolated web only",
+              "webFixJournalPhase": "verified",
+              "unchangedContainerRoles": [
+                "api",
+                "postgres",
+                "gateway"
+              ],
+              "networkIdUnchanged": true,
+              "replacementImageId": "sha256:ed718d01b2765978f26d21a563ae6bb2fec7dd31457bc337e4124dbb4df4a2ed",
+              "compressedSha256": "b607695b7ce5bedc1b8a56c94afeb4af87849a92495c97470f3338dc96043aa7"
+            },
+            "browserVerification": {
+              "browser": "Brave",
+              "tabId": 1526231236,
+              "origin": "https://quantself-restore.test:18443/",
+              "title": "Today Quantself",
+              "dashboardDate": "2026-11-14",
+              "existingOwnerSession": true
+            }
+          },
+          "inventoryAudio": {
+            "itemId": "cmwfw8s81000108pexfd5few0",
+            "audioId": "cmwfweps7000508pe801fwaus",
+            "durationSeconds": 90,
+            "readyState": 4,
+            "playingAtSeconds": 5.177963,
+            "uiSeekSeconds": 43.8,
+            "subsequentPlayingAtSeconds": 52.424059,
+            "mediaError": false,
+            "scope": "Inventory route bypasses the custom protected-page proxy; API authenticated the Owner session.",
+            "localScreenshot": "/tmp/keep254-pbs-brave-audio.png"
+          },
+          "receiptOriginals": {
+            "status": "downloaded in authenticated Owner Brave session; SHA-256 verified locally",
+            "apiRoute": "/api/v1/budgeting/receipts/{id}/original",
+            "pdf": {
+              "receiptId": "7d76f27e-20cf-47ee-b0b3-9075c336bf74",
+              "bytes": 792,
+              "sha256": "a2f3b23e9f1ef34f9a0c023a34421205242dd293e0468e8bf84178c4280a218f",
+              "uiDownload": {
+                "status": "verified from downloaded file",
+                "browserDownloadEvent": "timed out"
+              }
+            },
+            "png": {
+              "receiptId": "cb117495-d376-4a39-a8a0-4437b0a03855",
+              "bytes": 5763517,
+              "sha256": "617dde7b47140b8da416a5e1fff569bdb889b1f8181ed11c3dfbe947e75ecc86"
+            },
+            "inlineReceiptUi": {
+              "status": "verified",
+              "receiptId": "cb117495-d376-4a39-a8a0-4437b0a03855",
+              "imageComplete": true,
+              "naturalWidth": 1200,
+              "naturalHeight": 1600,
+              "source": "receipt original API",
+              "localScreenshot": "/tmp/keep254-pbs-receipt-rendered.png"
+            }
+          },
+          "todoAudio": {
+            "status": "playback and seeking verified in Brave",
+            "page": "/restore-audio-check",
+            "apiRoute": "/api/v1/todo-captures/e36b6ed6-63a7-4de5-8fdc-01c9cfc889a1/audio",
+            "authenticatedOwnerSession": true,
+            "durationSeconds": 90,
+            "readyState": 4,
+            "mediaError": null,
+            "initialPlaybackSeconds": 5.248689,
+            "uiSeekSeconds": 45.604989,
+            "continuedPlaybackSeconds": 53.009734,
+            "pausedAfterVerification": true,
+            "scope": "Temporary same-origin media API player. The normal To-Do task pane requires the unavailable GitHub relation.",
+            "localScreenshot": "/tmp/keep254-pbs-todo-audio-proof.png",
+            "temporaryGateway": {
+              "candidateValidated": true,
+              "onlyGatewayRestarted": true,
+              "gatewayContainerIdPreserved": true,
+              "originalConfigurationRestore": "verified",
+              "restorationJournal": "manual-pbs-audio-gateway-restore.json"
+            }
+          }
+        },
+        "isolatedVaultPermissions": {
+          "status": "passed",
+          "initialGuestPid": 1731,
+          "initialExitCode": 1,
+          "resultRecorded": false,
+          "curlControl": {
+            "verifiedCa": true,
+            "httpStatus": 200,
+            "isolatedIssuerVerified": true
+          },
+          "tlsDiagnostic": {
+            "pythonErrorCode": 85,
+            "reason": "Missing Authority Key Identifier"
+          },
+          "continuation": {
+            "guestPid": 1778,
+            "exitCode": 1,
+            "diagnostic": "viewerProfile unexpected HTTP status",
+            "resultRecorded": false
+          },
+          "replacementViewerPrepared": true,
+          "temporaryPrivateCache": true,
+          "noCopyManagedViewerHelper": "staged and reviewed",
+          "checksPassed": 17,
+          "conditionalAttempt": {
+            "httpStatus": 412,
+            "status": "failed precondition"
+          },
+          "verification": "Authorization checks used the existing temporary credential and unconditional requests where required.",
+          "keyResults": {
+            "anonymousRead": 401,
+            "appPersonalRead": 404,
+            "appPersonalWrite": 404,
+            "ownerPersonalSentinelUnchanged": 200,
+            "viewerCreate": 403,
+            "viewerOverwrite": 403,
+            "viewerDelete": 403,
+            "appCreate": 201,
+            "appOverwrite": 204,
+            "appRead": 200,
+            "appDelete": 204,
+            "appReadAfterDelete": 404
+          }
+        },
+        "isolatedVaultRotation": {
+          "status": "verified",
+          "scope": "VM 2542 and VM 2543 isolated test credentials only",
+          "approvedPriorTokenRevocations": 2,
+          "revoked": 2,
+          "remaining": 1,
+          "oldHttp": 401,
+          "newHttp": 200,
+          "originalSwitch": {
+            "guestPid": 5676,
+            "status": "failed before credential or API switch",
+            "reason": "The host-side curl probe used a path blocked by the isolated guest firewall."
+          },
+          "continuation": {
+            "status": "verified",
+            "reusedIssuedToken": true,
+            "preflight": "Trusted fixture reads from inside the existing API container",
+            "apiHealthAndFixtureReadVerifiedBeforeRevocation": true
+          }
+        },
+        "publicTestPasskeyExport": {
+          "status": "verified",
+          "ownerPublicRows": 2
+        }
+      }
+    }
+  },
+  "observations": [
+    "The first helper could not parse the original files restore output. The original task was reconciled to terminal success without resubmission.",
+    "The corrected parser identified the original quantself restore task from its mixed progress and UPID output and verified terminal success.",
+    "Files offline preparation was completed after correcting the cloned Docker firewall dependency. The clone shut down with no NIC and both original containers stopped.",
+    "The Quantself post-stop check failed transiently. The next read-only check found all six original containers exited with restart policy no.",
+    "The first functional import helper started PostgreSQL but did not create the functional database. A read-only check confirmed absence before the guarded continuation imported it once and verified counts."
+  ],
+  "pending": [
+    "Independent B2 full application recovery",
+    "Nightly PostgreSQL restore rehearsal and scheduled operation"
+  ],
+  "networkEvidence": "restore-network-proof.json",
+  "isolatedBrowserTrust": {
+    "browser": "Chrome",
+    "ownerInstalledTemporaryCA": true,
+    "trustedHttpsVerified": true
+  },
+  "temporaryCredentialAuthorization": {
+    "scope": "isolated test credentials on VM 2542 and VM 2543 only",
+    "automaticManagementApproved": true,
+    "approvedPriorAppTokenRevocations": 2
+  },
+  "optionalAdditionalChecks": [
+    "Restored To-Do full-response SHA-256, three exact HTTP byte ranges and past-EOF status were not captured during the PBS browser probe."
+  ]
+}

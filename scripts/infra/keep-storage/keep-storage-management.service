@@ -1,0 +1,16 @@
+[Unit]
+Description=Keep storage host management boundary
+DefaultDependencies=no
+Wants=network-pre.target
+After=local-fs.target
+Before=network-pre.target ssh.service pveproxy.service proxmox-backup-proxy.service shutdown.target
+Conflicts=shutdown.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/local/sbin/apply-keep-management-boundary
+ExecReload=/usr/local/sbin/apply-keep-management-boundary
+
+[Install]
+WantedBy=multi-user.target

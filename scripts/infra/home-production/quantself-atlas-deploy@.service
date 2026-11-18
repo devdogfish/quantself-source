@@ -1,0 +1,14 @@
+[Unit]
+Description=Quantself signed Atlas release admission
+
+[Service]
+User=root
+UMask=0077
+PrivateTmp=true
+EnvironmentFile=/etc/quantself/deploy.env
+ExecStart=/usr/bin/python3 -I -B /usr/local/libexec/quantself-atlas/atlas-keep-deploy.py
+StandardInput=socket
+StandardOutput=socket
+StandardError=journal
+TimeoutStartSec=45min
+RuntimeMaxSec=45min

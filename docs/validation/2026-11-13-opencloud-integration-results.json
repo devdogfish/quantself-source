@@ -1,0 +1,113 @@
+{
+  "checks": [
+    "Actual receipt upload/open/list; original bytes absent from PostgreSQL; Owner-only authorization",
+    "Concurrent receipt retries deduplicate even across different IDs; changed-payload replay rejected",
+    "Actual capture recording upload/seek, denied access, invalid range and database-only transcript",
+    "Actual route recovers ambiguous MOVE using durable pending record and verified hash",
+    "Actual receipt route recovers DB attachment failure without uploading another original",
+    "Database failure after remote success and independent concurrent attempts recover without overwrite",
+    "Deferred upload cannot overwrite a later durable deletion intent",
+    "Actual routes preserve metadata and report revoked credential, full storage, timeout and missing originals",
+    "Actual inventory multipart upload and reads cover image/audio/asset; lists make zero WebDAV requests",
+    "Preprocessing API reads only attached inventory; receipt references and unauthenticated workers denied",
+    "Dry-run inventory, all five conversion categories, manifest restart and checksum-verified rollback",
+    "Actual receipt library/detail UI upload/open; actual AudioPlayer playback and seeking in Chromium",
+    "Write pause preserves reads; durable inventory delete retries outages; capture deletion revokes reads"
+  ],
+  "measurements": [
+    {
+      "name": "receipt upload cold",
+      "ms": 374,
+      "requests": 7,
+      "payloadBytes": 248,
+      "uploadedBytes": 248,
+      "downloadedBytes": 1048,
+      "methods": [
+        "PROPFIND:404",
+        "MKCOL:201",
+        "MKCOL:201",
+        "PUT:201",
+        "MOVE:201",
+        "PROPFIND:207",
+        "GET:200"
+      ]
+    },
+    {
+      "name": "receipt open warm",
+      "ms": 28,
+      "requests": 1,
+      "payloadBytes": 248,
+      "uploadedBytes": 0,
+      "downloadedBytes": 248,
+      "methods": [
+        "GET:200"
+      ]
+    },
+    {
+      "name": "receipt list",
+      "ms": 3,
+      "requests": 0,
+      "payloadBytes": 0,
+      "uploadedBytes": 0,
+      "downloadedBytes": 0,
+      "methods": []
+    },
+    {
+      "name": "recording upload cold",
+      "ms": 857,
+      "requests": 7,
+      "payloadBytes": 34560078,
+      "uploadedBytes": 34560078,
+      "downloadedBytes": 34561166,
+      "methods": [
+        "PROPFIND:404",
+        "MKCOL:405",
+        "MKCOL:201",
+        "PUT:201",
+        "MOVE:201",
+        "PROPFIND:207",
+        "GET:200"
+      ]
+    },
+    {
+      "name": "recording range warm",
+      "ms": 36,
+      "requests": 1,
+      "payloadBytes": 1000,
+      "uploadedBytes": 0,
+      "downloadedBytes": 1000,
+      "methods": [
+        "GET:206"
+      ]
+    },
+    {
+      "name": "recording open warm",
+      "ms": 206,
+      "requests": 1,
+      "payloadBytes": 34560078,
+      "uploadedBytes": 0,
+      "downloadedBytes": 34560078,
+      "methods": [
+        "GET:200"
+      ]
+    },
+    {
+      "name": "capture transcript",
+      "ms": 6,
+      "requests": 0,
+      "payloadBytes": 0,
+      "uploadedBytes": 0,
+      "downloadedBytes": 0,
+      "methods": []
+    },
+    {
+      "name": "inventory list",
+      "ms": 5,
+      "requests": 0,
+      "payloadBytes": 0,
+      "uploadedBytes": 0,
+      "downloadedBytes": 0,
+      "methods": []
+    }
+  ]
+}

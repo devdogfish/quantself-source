@@ -1,0 +1,173 @@
+{
+  "restoreId": "20261114T065840Z-d419ee3d4cd9",
+  "source": "B2",
+  "status": "verified extraction and isolated functional recovery",
+  "independentOwnerRecoveryCredentialsUsed": true,
+  "independentManifestSha256Verified": true,
+  "independentManifestSha256": "0eb273632a465fbffa12e063f7d6cc725bc13c51b456ba6112833f1a51f06bb5",
+  "resticVersion": "0.19.1",
+  "repositories": {
+    "files": {
+      "repository": "b9fbf83d91e00e01bb42ef91e57028276ce0adabb3908b59c0f63472a1fafde1",
+      "snapshot": "779a7802a04292add1411d6042bbe9ba541b0fe4e643e6ebeccc1bdb208cd39d",
+      "inventoryEntries": 770
+    },
+    "quantself": {
+      "repository": "8d69798ecf68502e119f6e0cc89b2306a1460786783da02e5c8a2bb303f92418",
+      "snapshot": "1f1e5ee3d2a62ce03850f7244834bb08254e0383f5290785281e14be8d4ba53a",
+      "inventoryEntries": 16
+    }
+  },
+  "verification": {
+    "readDataCheckPassedForBothRepositories": true,
+    "verifiedRestorePassedForBothSnapshots": true,
+    "nativeInventoryIncludingXattrsMatched": true,
+    "applicationImageArchiveVerified": true,
+    "workerExitCode": 0
+  },
+  "runtimeStaging": {
+    "source": "independently recovered B2 trees",
+    "transport": "native QEMU guest-agent file transfer",
+    "freshGuestRoot": "/srv/keep-restore-254-b2",
+    "files": {
+      "vmId": 2542,
+      "transferredBytes": 369943,
+      "wholeTransferSha256Matched": true,
+      "nativeOpenCloudConfigAndDataInventoryMatched": true
+    },
+    "quantself": {
+      "vmId": 2543,
+      "transferredBytes": 722976781,
+      "wholeTransferSha256Matched": true,
+      "nativeCaptureInventoryMatched": true,
+      "databaseDumpAndImageArchiveDigestsMatched": true
+    }
+  },
+  "applicationImageLoad": {
+    "vmId": 2543,
+    "cloneUuid": "f5a83042-bd99-4655-95eb-5bd7b775dc74",
+    "archiveSha256": "57b98984c6b49b6dd5595e958f17beacf4b82e833fc7464bebf6a80914d39ba8",
+    "source": "recovered B2 image archive",
+    "dockerLoadVerified": true,
+    "imageId": "sha256:60abe78f12a689a755699a4719fe6691ad68fb9d4cccff3854d6b130bf1e079d",
+    "platform": "linux/amd64"
+  },
+  "functionalRecovery": {
+    "status": "verified",
+    "baselineRestoreId": "20261114T065840Z-d419ee3d4cd9",
+    "filesTransition": {
+      "originalGatewayStop": {
+        "guestPid": 1987,
+        "status": "failed",
+        "gatewayExitCode": 137,
+        "oomKilled": false
+      },
+      "continuation": {
+        "guestPid": 2107,
+        "status": "stopped_staged",
+        "emptyUploadSessionChecks": 2,
+        "openCloudExitCode": 0,
+        "openCloudOomKilled": false
+      },
+      "b2VaultStartup": {
+        "status": "verified",
+        "trustedHttpsIssuer": "https://files-restore.test:19443"
+      }
+    },
+    "temporaryRuntimeCredentialsInstalled": true,
+    "postgresqlImport": {
+      "status": "verified",
+      "vmId": 2543,
+      "database": "quantself_restore_ui",
+      "containerId": "8b7e1662399352eb8040f0ecb7c0887815b9ab21a32f38cd33a1e34337ccf04d",
+      "migrations": 66,
+      "ownerUsers": 1,
+      "ownerMarkers": 1,
+      "ownerSessions": 2,
+      "setupTokens": 2,
+      "ownerPasskeys": 1
+    },
+    "ownerPasskeyFixture": {
+      "status": "verified",
+      "originalPreserved": true,
+      "publicCredentialRecordsAdded": 1,
+      "ownerPasskeys": 2
+    },
+    "applicationStartup": {
+      "status": "verified",
+      "archivedImageStarted": true,
+      "guestExitCode": 0,
+      "initialHttpsCheckReady": false,
+      "httpsVerifiedOnObservation": true,
+      "restartedDuringObservation": false
+    },
+    "webOnlyPatch": {
+      "status": "verified",
+      "ciRun": 43612415589,
+      "revision": "0560c98e37c8631c4956f0cf95e7f137a2c81aee",
+      "imageId": "sha256:ed718d01b2765978f26d21a563ae6bb2fec7dd31457bc337e4124dbb4df4a2ed",
+      "sameImageAsPbsWebPatch": true,
+      "archivedImageRetained": true,
+      "apiPostgresqlGatewayAndNetworkIdsPreserved": true
+    },
+    "vaultPermissions": {
+      "status": "verified",
+      "checksPassed": 17
+    },
+    "vaultRotation": {
+      "status": "verified",
+      "oldCredentialHttp": 401,
+      "replacementCredentialHttp": 200,
+      "revoked": 1,
+      "remaining": 1,
+      "postRestartVerified": true
+    },
+    "browserAfterVaultRestart": {
+      "existingTestPasskeyLoginVerified": true,
+      "postLoginRequiredDirectRootNavigation": true,
+      "todayDashboardLoaded": true,
+      "pngReceipt": {
+        "receiptId": "cb117495-d376-4a39-a8a0-4437b0a03855",
+        "renderComplete": true,
+        "width": 1200,
+        "height": 1600
+      },
+      "pdfReceipt": {
+        "downloadedThroughReceiptUi": true,
+        "bytes": 792,
+        "sha256": "a2f3b23e9f1ef34f9a0c023a34421205242dd293e0468e8bf84178c4280a218f"
+      },
+      "todoAudio": {
+        "route": "/restore-audio-check",
+        "usedExistingOwnerSession": true,
+        "durationSeconds": 90,
+        "readyState": 4,
+        "mediaError": null,
+        "playedToSeconds": 4.833601,
+        "seekSeconds": 44.167501,
+        "advancedToSeconds": 49.76877,
+        "pausedAfterProbe": true
+      }
+    },
+    "httpMediaExtras": {
+      "status": "verified",
+      "initialAttemptJournalPreserved": true,
+      "initialAttemptFailure": "temporary key name exceeded 32 characters",
+      "initialTemporaryKeyIssued": false,
+      "continuationKeyNameLength": 29,
+      "fullResponse": {
+        "status": 200,
+        "bytes": 8640044,
+        "sha256": "31d6b7c418ac1485c02d35b70d08596ec14b2de9e879b21fcc8611b539aa2148"
+      },
+      "prefixMiddleAndSuffixRanges": {
+        "status": 206,
+        "exactBytesMatched": true
+      },
+      "beyondEofHttp": 416,
+      "anonymousHttp": 401,
+      "temporaryKeyDisabledAndDenied": true,
+      "originalGatewayConfigurationRestored": true
+    }
+  }
+}

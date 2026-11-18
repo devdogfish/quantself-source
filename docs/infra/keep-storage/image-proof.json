@@ -1,0 +1,63 @@
+{
+  "id": "sha256:fef4d9af7bce109e8b5c6245422df8e01f42af9a117bef8a0f976fb2b48b5530",
+  "size": 2119504498,
+  "architecture": "amd64",
+  "os": "linux",
+  "revision": "e87aaadf8516fc212ed6edf8fa5275348f9a63c9",
+  "run": "https://github.com/devdogfish/quantself/actions/runs/43546658517",
+  "artifactBytes": 726201787,
+  "artifactChecksums": "Both image.tar.gz and image.json passed SHA-256 verification",
+  "loadedOn": "quantself VM 2541",
+  "loadedIdentityMatches": true,
+  "runtime": "Bun 1.3.4 (5eb2145b)",
+  "runtimeChecks": {
+    "pass": 20,
+    "fail": 0,
+    "files": 3,
+    "environment": "Temporary network-isolated read-only container, NODE_ENV=test; no application database or credentials"
+  },
+  "limitations": [
+    "Initial image retained for rollback; current deployed image is recorded in verifiedReplacement."
+  ],
+  "verifiedReplacement": {
+    "id": "sha256:60abe78f12a689a755699a4719fe6691ad68fb9d4cccff3854d6b130bf1e079d",
+    "size": 2120019430,
+    "architecture": "amd64",
+    "os": "linux",
+    "revision": "1e64dfda64c855ef9801b44d1ec912faf69d15b6",
+    "run": "https://github.com/devdogfish/quantself/actions/runs/43565134284",
+    "artifactId": 14101999736,
+    "artifactBytes": 726361825,
+    "compressedImageSha256": "57b98984c6b49b6dd5595e958f17beacf4b82e833fc7464bebf6a80914d39ba8",
+    "artifactChecksums": "Both image.tar.gz and image.json passed SHA-256 verification. The archived Docker config matched the image ID, platform and revision.",
+    "loadedOn": "quantself VM 2541",
+    "loadedIdentityMatches": true,
+    "ciChecks": {
+      "typecheck": "passed",
+      "pass": 1748,
+      "fail": 0,
+      "skip": 13,
+      "files": 380,
+      "shards": 16,
+      "testRuntime": "Bun 1.3.14 in the network-isolated checker image"
+    },
+    "runtimeAcceptance": "passed; see runtime-drain-proof.json",
+    "deployment": {
+      "observedByUtc": "2026-11-14T06:56:30Z",
+      "appHealthy": true,
+      "apiHealthy": true,
+      "privateHttpsStatus": 200,
+      "tlsVerification": 0,
+      "archiveStaged": true,
+      "syntheticOriginalHashesMatched": [
+        "pdf",
+        "png",
+        "wav"
+      ],
+      "wavRangeStatus": 206,
+      "wavRangeBytes": 65536,
+      "wavRangeSha256": "a5ecf16517ec6c2b6f4382f2777eac3fe5ecb981e4f20ffffea3960a7ee4402c"
+    }
+  },
+  "initialImageHistorical": true
+}

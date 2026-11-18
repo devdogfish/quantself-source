@@ -1,0 +1,92 @@
+# Apply after compose.yaml and compose.prod.yaml on the Quantself VM.
+services:
+  app:
+    networks: !override [quantself_internal]
+    stop_grace_period: 15m
+    environment:
+      DEBUG: next:start-server
+      # Mask inherited Hostinger settings even when a stale value is supplied.
+      QUANTSELF_UMAMI_WEBSITE_ID: ""
+      QUANTSELF_UMAMI_READ_DATABASE_URL: ""
+      APPLICATION_LINKS_TOKEN: ""
+      QUANTSELF_OWNER_INGRESS_TOKEN: ${QUANTSELF_OWNER_INGRESS_TOKEN:?Set the private Owner ingress token}
+      QUANTSELF_JOBS_HOME: /run/quantself-jobs
+    volumes:
+      - type: bind
+        source: /etc/quantself/jobs/web/candidate-rules.json
+        target: /run/quantself-jobs/candidate-rules.json
+        read_only: true
+        bind:
+          create_host_path: false
+
+  api:
+    ports:
+      - 127.0.0.1:3001:3001
+    environment:
+      QUANTSELF_OWNER_INGRESS_TOKEN: ${QUANTSELF_OWNER_INGRESS_TOKEN:?Set the private Owner ingress token}
+      QUANTSELF_PERSONAL_ASSISTANT_CLIENT_ID: ${QUANTSELF_PERSONAL_ASSISTANT_CLIENT_ID:-}
+      QUANTSELF_ORIGINALS_PROVIDER: opencloud
+      QUANTSELF_OPENCLOUD_URL: ${QUANTSELF_OPENCLOUD_URL:?Set the private OpenCloud HTTPS origin}
+      QUANTSELF_OPENCLOUD_SPACE_ID: ${QUANTSELF_OPENCLOUD_SPACE_ID:?Set the dedicated originals space ID}
+      QUANTSELF_OPENCLOUD_USERNAME: ${QUANTSELF_OPENCLOUD_USERNAME:?Set the scoped OpenCloud account}
+      QUANTSELF_OPENCLOUD_TOKEN: ${QUANTSELF_OPENCLOUD_TOKEN:?Set the scoped OpenCloud token}
+      QUANTSELF_JOBS_EMAIL_ROUTES: /run/quantself-jobs/email-routes.json
+      QUANTSELF_WEBSITE_ANALYTICS_INGEST_TOKEN: ${QUANTSELF_WEBSITE_ANALYTICS_INGEST_TOKEN:-}
+      QUANTSELF_TRACKED_LINKS_READ_TOKEN: ${QUANTSELF_TRACKED_LINKS_READ_TOKEN:-}
+      QUANTSELF_TRACKED_LINKS_APPLICATION_TOKEN: ${QUANTSELF_TRACKED_LINKS_APPLICATION_TOKEN:-}
+      QUANTSELF_TRACKED_LINKS_SHARE_TOKEN: ${QUANTSELF_TRACKED_LINKS_SHARE_TOKEN:-}
+      QUANTSELF_MEETINGS_FROM: ${QUANTSELF_MEETINGS_FROM:-}
+      QUANTSELF_MEETINGS_OWNER_EMAIL: ${QUANTSELF_MEETINGS_OWNER_EMAIL:-}
+      QUANTSELF_MEETINGS_JITSI_ORIGIN: ${QUANTSELF_MEETINGS_JITSI_ORIGIN:-}
+      QUANTSELF_MEETINGS_PORTFOLIO_ORIGIN: ${QUANTSELF_MEETINGS_PORTFOLIO_ORIGIN:-}
+      QUANTSELF_MEETINGS_SES_REGION: ${QUANTSELF_MEETINGS_SES_REGION:-ca-central-1}
+      QUANTSELF_MEETINGS_TIME_ZONE: ${QUANTSELF_MEETINGS_TIME_ZONE:-}
+      AWS_ACCESS_KEY_ID: ${QUANTSELF_MEETINGS_AWS_ACCESS_KEY_ID:-}
+      AWS_SECRET_ACCESS_KEY: ${QUANTSELF_MEETINGS_AWS_SECRET_ACCESS_KEY:-}
+      AWS_SESSION_TOKEN: ${QUANTSELF_MEETINGS_AWS_SESSION_TOKEN:-}
+    volumes:
+      - type: bind
+        source: /etc/quantself/jobs/api/email-routes.json
+        target: /run/quantself-jobs/email-routes.json
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: /etc/quantself/jobs/api/resume-templates
+        target: /run/quantself-job-templates
+        read_only: true
+        bind:
+          create_host_path: false
+
+  gateway:
+    image: caddy:2.11.4-alpine@sha256:6aeddd44c3078b0f9a35206472a11420648a79c184603ef95957d0a20044cb2b
+    mem_limit: 128m
+    networks: !override [quantself_internal]
+    stop_grace_period: 32m
+    volumes:
+      - ./Caddyfile.home:/etc/caddy/Caddyfile:ro
+    ports:
+      - 127.0.0.1:3000:3000
+
+  postgres:
+    image: postgres:18-alpine@sha256:1018733457011bf88d81db98cf43aac6d5150afc18787dbe204771fedf80ff95
+    mem_limit: 512m
+
+  inventory-preprocessing-worker:
+    profiles: [inventory-preprocessing]
+    init: true
+    restart: "no"
+    command: [bun, apps/web/scripts/run-inventory-preprocessing-worker.ts]
+    stop_grace_period: 15m
+
+  inventory-codex-enrichment-worker:
+    init: true
+    command: [bun, apps/web/scripts/run-inventory-codex-enrichment-worker.ts]
+    environment:
+      # The Codex CLI uses /usr/bin/env node. Keep the Bun image's Node shim on PATH.
+      PATH: /app/apps/web/node_modules/.bin:/app/node_modules/.bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/bun-node-fallback-bin
+    stop_grace_period: 15m
+
+networks:
+  girke_edge: !reset null
+  portfolio_analytics: !reset null

@@ -1,0 +1,486 @@
+model InventoryLocation {
+  id             String                @id @default(cuid())
+  name           String
+  normalizedName String                @unique
+  kind           InventoryLocationKind @default(OTHER)
+  note           String?
+  metadata       Json?
+  createdAt      DateTime              @default(now())
+  updatedAt      DateTime              @updatedAt
+
+  originSessions      InventoryCaptureSession[] @relation("CaptureSessionOriginLocation")
+  destinationSessions InventoryCaptureSession[] @relation("CaptureSessionDestinationLocation")
+  containers          InventoryContainer[]
+  placements          InventoryItemPlacement[]
+
+  @@index([kind, name])
+  @@map("inventory_location")
+}
+
+model InventoryContainer {
+  id              String   @id @default(cuid())
+  referenceId     String   @unique
+  name            String
+  normalizedName  String   @unique
+  locationId      String?
+  visualPresetKey String
+  sizeLiters      Float?
+  photoFilePath   String?
+  metadata        Json?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  location        InventoryLocation?        @relation(fields: [locationId], references: [id], onDelete: SetNull)
+  defaultSessions InventoryCaptureSession[]
+  placements      InventoryItemPlacement[]
+
+  @@index([locationId, name])
+  @@index([visualPresetKey])
+  @@map("inventory_container")
+}
+
+model InventoryContainerVisualBoundsOverride {
+  presetKey   String   @id
+  bounds      Json
+  hoverBounds Json?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("inventory_container_visual_bounds_override")
+}
+
+model InventoryCaptureSession {
+  id                           String    @id @default(cuid())
+  label                        String?
+  defaultOriginLocationId      String?
+  defaultDestinationLocationId String?
+  defaultContainerId           String?
+  defaultContainerLabel        String?
+  note                         String?
+  startedAt                    DateTime  @default(now())
+  endedAt                      DateTime?
+  createdAt                    DateTime  @default(now())
+  updatedAt                    DateTime  @updatedAt
+
+  defaultOriginLocation      InventoryLocation?  @relation("CaptureSessionOriginLocation", fields: [defaultOriginLocationId], references: [id], onDelete: SetNull)
+  defaultDestinationLocation InventoryLocation?  @relation("CaptureSessionDestinationLocation", fields: [defaultDestinationLocationId], references: [id], onDelete: SetNull)
+  defaultContainer           InventoryContainer? @relation(fields: [defaultContainerId], references: [id], onDelete: SetNull)
+  items                      InventoryItem[]
+
+  @@index([startedAt])
+  @@index([defaultOriginLocationId])
+  @@index([defaultDestinationLocationId])
+  @@index([defaultContainerId])
+  @@map("inventory_capture_session")
+}
+
+model InventoryItem {
+  budgetLinks BudgetInventoryLink[]
+  id                String                      @id @default(cuid())
+  captureSessionId  String?
+  kind              InventoryItemKind           @default(GROUP)
+  title             String?
+  note              String?
+  captureText       String?
+  status            InventoryItemStatus         @default(UNSURE)
+  importance        InventoryImportance         @default(MEDIUM)
+  category          InventoryCategory?
+  acquisitionSource InventoryAcquisitionSource?
+  costCents         Int?
+  costCurrency      String                      @default("CAD")
+  tags              String[]                    @default([])
+  aliases           String[]                    @default([])
+  searchText        String                      @default("")
+  metadata          Json?
+  archivedAt        DateTime?
+  capturedAt        DateTime                    @default(now())
+  createdAt         DateTime                    @default(now())
+  updatedAt         DateTime                    @updatedAt
+
+  captureSession    InventoryCaptureSession?    @relation(fields: [captureSessionId], references: [id], onDelete: SetNull)
+  placements        InventoryItemPlacement[]
+  images            InventoryItemImage[]
+  audioNotes        InventoryItemAudio[]
+  assets            InventoryItemAsset[]
+  clothingRecommendationOptionItems InventoryClothingRecommendationOptionItem[]
+  preprocessingJobs InventoryPreprocessingJob[]
+  enrichmentJobs    InventoryEnrichmentJob[]
+  clothingProfile   InventoryClothingProfile?
+  wearConfirmations InventoryClothingWearConfirmationItem[]
+  remedyProfile     InventoryRemedyProfile?
+
+  @@index([capturedAt])
+  @@index([captureSessionId, capturedAt])
+  @@index([status, capturedAt])
+  @@index([importance, capturedAt])
+  @@index([category, capturedAt])
+  @@index([acquisitionSource, capturedAt])
+  @@index([archivedAt, capturedAt])
+  @@index([searchText])
+  @@map("inventory_item")
+}
+
+model InventoryItemPlacement {
+  id          String   @id @default(cuid())
+  itemId      String
+  containerId String?
+  locationId  String?
+  quantity    Int
+  note        String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  item      InventoryItem       @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  container InventoryContainer? @relation(fields: [containerId], references: [id], onDelete: Restrict)
+  location  InventoryLocation?  @relation(fields: [locationId], references: [id], onDelete: Restrict)
+
+  @@unique([itemId, containerId])
+  @@unique([itemId, locationId])
+  @@index([containerId])
+  @@index([locationId])
+  @@map("inventory_item_placement")
+}
+
+model InventoryClothingProfile {
+  itemId            String   @id
+  isDirty           Boolean  @default(false)
+  dirtyQuantity     Int      @default(0)
+  wearStateVersion  Int      @default(0)
+  attributes        Json     @default("{\"version\":1}")
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  item InventoryItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+
+  @@map("inventory_clothing_profile")
+}
+
+model InventoryClothingWearConfirmation {
+  id                     String   @id @default(cuid())
+  confirmedByClientId    String
+  recommendationId       String?
+  recommendationOptionId String?
+  undoneAt               DateTime?
+  undoneByClientId       String?
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+
+  recommendation       InventoryClothingRecommendation?       @relation(fields: [recommendationId], references: [id], onDelete: SetNull)
+  recommendationOption InventoryClothingRecommendationOption? @relation(fields: [recommendationOptionId], references: [id], onDelete: SetNull)
+  items InventoryClothingWearConfirmationItem[]
+
+  @@index([createdAt])
+  @@index([recommendationId])
+  @@index([recommendationOptionId])
+  @@map("inventory_clothing_wear_confirmation")
+}
+
+model InventoryClothingWearConfirmationItem {
+  id                    String   @id @default(cuid())
+  confirmationId        String
+  productId             String
+  productTitle          String
+  itemId                String?
+  wearStateVersionAfter Int
+  createdAt             DateTime @default(now())
+
+  confirmation InventoryClothingWearConfirmation @relation(fields: [confirmationId], references: [id], onDelete: Cascade)
+  item         InventoryItem?                     @relation(fields: [itemId], references: [id], onDelete: SetNull)
+
+  @@unique([confirmationId, productId])
+  @@index([itemId, createdAt])
+  @@map("inventory_clothing_wear_confirmation_item")
+}
+
+model InventoryClothingRecommendation {
+  id                           String                               @id @default(cuid())
+  kind                         InventoryClothingRecommendationKind
+  status                       InventoryClothingRecommendationStatus @default(PUBLISHED)
+  targetDate                   DateTime                             @db.Date
+  eventLabel                   String?
+  eventStartsAt                DateTime?
+  reason                       String
+  publishedByClientId          String
+  publishedByClientName        String
+  publishedByClientKind        String
+  supersededByRecommendationId String?
+  publishedAt                  DateTime                             @default(now())
+  createdAt                    DateTime                             @default(now())
+  updatedAt                    DateTime                             @updatedAt
+
+  options           InventoryClothingRecommendationOption[]
+  wearConfirmations InventoryClothingWearConfirmation[]
+
+  @@index([kind, eventStartsAt, status, publishedAt])
+  @@index([kind, targetDate, status, publishedAt])
+  @@map("inventory_clothing_recommendation")
+}
+
+model InventoryClothingRecommendationOption {
+  id               String                                     @id @default(cuid())
+  recommendationId String
+  slot             InventoryClothingRecommendationOptionSlot
+  reason           String?
+  createdAt        DateTime                                   @default(now())
+  updatedAt        DateTime                                   @updatedAt
+
+  recommendation  InventoryClothingRecommendation     @relation(fields: [recommendationId], references: [id], onDelete: Cascade)
+  items           InventoryClothingRecommendationOptionItem[]
+  wearConfirmations InventoryClothingWearConfirmation[]
+
+  @@unique([recommendationId, slot])
+  @@map("inventory_clothing_recommendation_option")
+}
+
+model InventoryClothingRecommendationOptionItem {
+  id           String   @id @default(cuid())
+  optionId     String
+  productId    String
+  productTitle String
+  itemId       String?
+  position     Int
+  createdAt DateTime @default(now())
+
+  option InventoryClothingRecommendationOption @relation(fields: [optionId], references: [id], onDelete: Cascade)
+  item   InventoryItem?                        @relation(fields: [itemId], references: [id], onDelete: SetNull)
+
+  @@unique([optionId, productId])
+  @@unique([optionId, position])
+  @@index([itemId])
+  @@map("inventory_clothing_recommendation_option_item")
+}
+
+model InventoryRemedyProfile {
+  itemId               String   @id
+  substanceId          String   @unique
+  potencies            String[] @default([])
+  selectionSummary     String?
+  externalReferences   Json     @default("[]")
+  registeredByClientId String?
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  item      InventoryItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  substance Substance     @relation(fields: [substanceId], references: [id], onDelete: Restrict)
+
+  @@map("inventory_remedy_profile")
+}
+
+model InventoryItemImage {
+  id           String   @id @default(cuid())
+  itemId       String
+  filePath     String
+  originalName String?
+  mimeType     String?
+  sizeBytes    Int?
+  width        Int?
+  height       Int?
+  position     Int      @default(0)
+  caption      String?
+  ocrText      String?
+  metadata     Json?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  item           InventoryItem            @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  enrichmentJobs InventoryEnrichmentJob[]
+
+  @@index([itemId, position])
+  @@index([filePath])
+  @@map("inventory_item_image")
+}
+
+model InventoryItemAudio {
+  id           String   @id @default(cuid())
+  itemId       String
+  filePath     String
+  originalName String?
+  mimeType     String?
+  sizeBytes    Int?
+  metadata     Json?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  item InventoryItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+
+  @@index([itemId])
+  @@index([filePath])
+  @@map("inventory_item_audio")
+}
+
+model InventoryItemAsset {
+  id           String   @id @default(cuid())
+  itemId       String
+  filePath     String
+  originalName String?
+  mimeType     String?
+  sizeBytes    Int?
+  metadata     Json?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  item InventoryItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+
+  @@index([itemId])
+  @@index([filePath])
+  @@map("inventory_item_asset")
+}
+
+model InventoryEnrichmentSettings {
+  id                String   @id @default("default")
+  approvalsRequired Boolean  @default(true)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@map("inventory_enrichment_settings")
+}
+
+model InventoryEnrichmentJob {
+  id               String                       @id @default(cuid())
+  kind             InventoryEnrichmentJobKind
+  targetItemId     String
+  targetImageId    String?
+  status           InventoryEnrichmentJobStatus @default(QUEUED)
+  attempts         Int                          @default(0)
+  maxAttempts      Int                          @default(3)
+  claimedBy        String?
+  claimedAt        DateTime?
+  leaseExpiresAt   DateTime?
+  inputSnapshot    Json
+  inputFingerprint String
+  resultPayload    Json?
+  resultId         String?
+  failureDetail    Json?
+  decidedAt        DateTime?
+  createdAt        DateTime                     @default(now())
+  updatedAt        DateTime                     @updatedAt
+
+  targetItem  InventoryItem       @relation(fields: [targetItemId], references: [id], onDelete: Cascade)
+  targetImage InventoryItemImage? @relation(fields: [targetImageId], references: [id], onDelete: SetNull)
+
+  @@unique([resultId])
+  @@index([status, leaseExpiresAt, createdAt])
+  @@index([targetItemId, createdAt])
+  @@index([targetImageId, createdAt])
+  @@map("inventory_enrichment_job")
+}
+
+model InventoryPreprocessingJob {
+  id             String                       @id @default(cuid())
+  targetItemId   String
+  status         InventoryPreprocessingStatus @default(QUEUED)
+  attempts       Int                          @default(0)
+  maxAttempts    Int                          @default(3)
+  claimedBy      String?
+  claimedAt      DateTime?
+  leaseExpiresAt DateTime?
+  sourceRefs     Json
+  textBundle     Json?
+  failureDetail  Json?
+  completedAt    DateTime?
+  createdAt      DateTime                     @default(now())
+  updatedAt      DateTime                     @updatedAt
+
+  targetItem InventoryItem @relation(fields: [targetItemId], references: [id], onDelete: Cascade)
+
+  @@index([status, leaseExpiresAt, createdAt])
+  @@index([targetItemId, createdAt])
+  @@map("inventory_preprocessing_job")
+}
+
+enum InventoryLocationKind {
+  ROOM
+  STORAGE
+  SHELF
+  AREA
+  OTHER
+}
+
+enum InventoryItemKind {
+  ITEM
+  GROUP
+}
+
+enum InventoryClothingRecommendationKind {
+  DAILY
+  EVENT
+}
+
+enum InventoryClothingRecommendationStatus {
+  PUBLISHED
+  WORN
+  DECLINED
+  SUPERSEDED
+}
+
+enum InventoryClothingRecommendationOptionSlot {
+  PRIMARY
+  ALTERNATIVE
+}
+
+enum InventoryItemStatus {
+  KEEP
+  DONATE
+  TRASH
+  UNSURE
+}
+
+enum InventoryImportance {
+  HIGH
+  MEDIUM
+  LOW
+}
+
+enum InventoryCategory {
+  food
+  drink
+  medical
+  entertainment
+  office
+  sports
+  clothing
+  homeopathy
+  supplement
+  technology
+  cosmetics
+  documents
+  tools
+  cleaning
+  kitchen
+  household
+  other
+}
+
+enum InventoryAcquisitionSource {
+  online
+  retail
+  gift
+  found
+  work
+  secondhand
+  other
+}
+
+enum InventoryEnrichmentJobKind {
+  INVENTORY_ITEM_ENRICHMENT
+  INVENTORY_ITEM_IMAGE_ENRICHMENT
+}
+
+enum InventoryEnrichmentJobStatus {
+  QUEUED
+  CLAIMED
+  PENDING_APPROVAL
+  APPLIED
+  REJECTED
+  FAILED
+  CANCELLED
+}
+
+enum InventoryPreprocessingStatus {
+  QUEUED
+  PROCESSING
+  READY_FOR_ENRICHMENT
+  PARTIAL
+  NEEDS_REVIEW
+  FAILED
+}

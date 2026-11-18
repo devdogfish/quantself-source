@@ -1,0 +1,3 @@
+ALTER TABLE "job_runner"
+  ALTER COLUMN "host" DROP NOT NULL,
+  ALTER COLUMN "lastHeartbeatAt" DROP NOT NULL;

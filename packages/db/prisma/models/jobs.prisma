@@ -1,0 +1,365 @@
+enum JobApplicationStatus {
+  draft
+  review
+  approved
+  queued
+  submitting
+  applied
+  skipped
+  disqualified
+  saved_for_later
+  rejected
+  needs_attention
+  interviewing
+  offer
+  withdrawn
+}
+
+enum JobResumeTrack {
+  engineering
+  web
+  admin
+}
+
+enum JobReviewLane {
+  quick
+  tailored
+}
+
+enum JobIssueCode {
+  model_error
+  unsupported_portal
+  manual_required
+  runner_unavailable
+  submission_uncertain
+}
+
+enum JobReceiptCode {
+  confirmation_page
+  confirmation_message
+}
+
+enum JobVerdict {
+  strong
+  review
+  weak
+}
+
+enum JobRevisionAuthor {
+  owner
+  agent
+}
+
+enum JobWorkItemKind {
+  enrich
+  tailor
+  revise
+  render
+  submit
+}
+
+enum JobWorkItemState {
+  queued
+  claimed
+  done
+  failed
+}
+
+enum JobPrivateFieldType {
+  text
+  email
+  phone
+  url
+  number
+  date
+  boolean
+  option
+  options
+}
+
+model JobPrivateField {
+  ownerId    String
+  id         String              @default(uuid())
+  scopeKey   String
+  key        String
+  label      String
+  type       JobPrivateFieldType
+  options    String[]            @default([])
+  ciphertext String?
+  hasValue   Boolean             @default(false)
+  valueAddedAt DateTime?
+  version    Int                 @default(1)
+  updatedAt  DateTime            @updatedAt
+
+  @@id([ownerId, id])
+  @@unique([ownerId, scopeKey, key])
+  @@map("job_private_field")
+}
+
+model JobApplication {
+  ownerId         String
+  id              String               @default(uuid())
+  applicationAddress String @unique @default(dbgenerated("next_job_application_address()"))
+  sesMessageId    String? @unique
+  sourceKey       String
+  sourceUrl       String
+  sourceLabel     String?
+  sourceStatus    String?
+  company         String
+  role            String
+  location        String?
+  salary          String?
+  description     String               @default("")
+  resumeTrack     JobResumeTrack
+  summary         String               @default("")
+  resumeMarkdown   String?
+  hasResumeMarkdown Boolean            @default(false)
+  approvedPreviewDigest String?
+  reviewLane       JobReviewLane        @default(quick)
+  status          JobApplicationStatus @default(draft)
+  revision        Int                  @default(1)
+  approvedRevision Int?
+  pilotHeldAt     DateTime?
+  privatePause     Json?
+  issueCode       JobIssueCode?
+  receiptCode     JobReceiptCode?
+  submitLeaseUntil DateTime?
+  appliedAt       DateTime?
+  lifecycleRevision Int @default(0)
+  lifecycleChangedAt DateTime?
+  sourceReply     Json?
+  dueAt           DateTime?
+  brief           Json?
+  verdict         JobVerdict?
+  receipt         Json?
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
+  lastOwnerEditedAt DateTime?
+  revisions       JobRevision[]
+  workItems       JobWorkItem[]
+  events          JobEvent[]
+  providerPostings JobProviderPosting[]
+  interviews      JobInterview[]
+
+  @@id([ownerId, id])
+  @@unique([ownerId, sourceKey])
+  @@index([ownerId, createdAt, id])
+  @@index([ownerId, status, submitLeaseUntil])
+  @@index([ownerId, reviewLane, status], map: "job_application_owner_lane_status_idx")
+  @@map("job_application")
+}
+
+model JobProviderPosting {
+  ownerId        String
+  sourceIdentity String
+  applicationId  String
+  application    JobApplication @relation(fields: [ownerId, applicationId], references: [ownerId, id], onDelete: Cascade)
+
+  @@id([ownerId, sourceIdentity])
+  @@index([ownerId, applicationId])
+  @@map("job_provider_posting")
+}
+
+model JobPilotPermit {
+  ownerId        String
+  id             String   @default(uuid()) @db.Uuid
+  sourceIdentity String
+  issuedAt       DateTime @default(now())
+  expiresAt      DateTime
+  revokedAt      DateTime?
+  applicationId  String?
+  revision       Int?
+  settledKeepResultId String? @unique @db.Uuid
+  screenedPostingDigest String?
+  allowanceId String? @db.Uuid
+  allowance JobPilotAllowance? @relation(fields: [ownerId, allowanceId], references: [ownerId, id], onDelete: Restrict, map: "job_pilot_permit_allowance_fkey")
+  screeningAttempt JobPilotScreenAttempt?
+  modelAttempts JobPilotModelAttempt[]
+
+  @@id([ownerId, id])
+  @@unique([ownerId, applicationId])
+  @@map("job_pilot_permit")
+}
+
+model JobPilotAllowance {
+  ownerId String
+  id String @default(uuid()) @db.Uuid
+  limitNanoUsd BigInt
+  heldNanoUsd BigInt @default(0)
+  spentNanoUsd BigInt @default(0)
+  screenCalls Int @default(0)
+  enrichCalls Int @default(0)
+  tailorCalls Int @default(0)
+  permits JobPilotPermit[]
+  screenAttempts JobPilotScreenAttempt[]
+  modelAttempts JobPilotModelAttempt[]
+
+  @@id([ownerId, id])
+  @@map("job_pilot_allowance")
+}
+
+model JobPilotScreenAttempt {
+  ownerId               String
+  permitId              String   @db.Uuid
+  allowanceId           String?  @db.Uuid
+  id                    String   @unique @db.Uuid
+  requestDigest         String
+  workspaceId           String
+  model                 String
+  posting               Json
+  maxInputTokens        Int
+  maxOutputTokens       Int
+  inputNanoUsdPerToken  BigInt
+  outputNanoUsdPerToken BigInt
+  reservedNanoUsd       BigInt
+  reservedAt            DateTime @default(now())
+  chargedNanoUsd        BigInt?
+  inputTokens           Int?
+  outputTokens          Int?
+  providerRequestId     String?  @unique
+  receiptDigest         String?
+  settledAt             DateTime?
+  intakePosting         Json?
+  permit JobPilotPermit @relation(fields: [ownerId, permitId], references: [ownerId, id], onDelete: Restrict, map: "job_pilot_screen_attempt_permit_fkey")
+  allowance JobPilotAllowance? @relation(fields: [ownerId, allowanceId], references: [ownerId, id], onDelete: Restrict, map: "job_pilot_screen_attempt_allowance_fkey")
+
+  @@id([ownerId, permitId])
+  @@map("job_pilot_screen_attempt")
+}
+
+model JobPilotModelAttempt {
+  ownerId String
+  permitId String @db.Uuid
+  allowanceId String @db.Uuid
+  phase String
+  workerId String
+  requestDigest String
+  policyDigest String
+  model String
+  inputTokens Int
+  maxOutputTokens Int
+  inputNanoUsdPerToken BigInt
+  outputNanoUsdPerToken BigInt
+  reservedNanoUsd BigInt
+  resultId String? @unique @db.Uuid
+  workId String?
+  leaseTokenHash String?
+  providerRequestId String? @unique
+  usage Json?
+  result Json?
+  chargedNanoUsd BigInt?
+  reportedAt DateTime?
+  permit JobPilotPermit @relation(fields: [ownerId, permitId], references: [ownerId, id], onDelete: Restrict, map: "job_pilot_model_attempt_permit_fkey")
+  allowance JobPilotAllowance @relation(fields: [ownerId, allowanceId], references: [ownerId, id], onDelete: Restrict, map: "job_pilot_model_attempt_allowance_fkey")
+
+  @@id([ownerId, permitId, phase])
+  @@map("job_pilot_model_attempt")
+}
+
+enum JobInterviewSource {
+  github
+  native
+}
+
+model JobInterview {
+  id             String         @id @default(uuid()) @db.Uuid
+  ownerId        String
+  applicationId  String
+  startAt        DateTime
+  endAt          DateTime
+  title          String
+  applicationUrl String
+  todoNumber     Int?
+  source         JobInterviewSource @default(github)
+  appointment    JobInterviewAppointment?
+  application    JobApplication @relation(fields: [ownerId, applicationId], references: [ownerId, id], onDelete: Cascade)
+
+  @@unique([ownerId, applicationId, startAt])
+  @@map("job_interview")
+}
+
+model JobInterviewAppointment {
+  id              String          @id @db.Uuid
+  startAt         DateTime
+  endAt           DateTime
+  revision        Int             @default(1)
+  cancelledAt     DateTime?
+  beforeMinutes   Int             @default(0)
+  afterMinutes    Int             @default(0)
+  alertMinutes    Int?            @default(10)
+  creationAuditId String?         @unique(map: "job_interview_appointment_creationAuditId_key")
+  interview       JobInterview    @relation(fields: [id], references: [id], onDelete: Restrict, map: "job_interview_appointment_interview_fkey")
+  creationAudit   AgentWriteAudit? @relation(fields: [creationAuditId], references: [id], onDelete: Restrict, map: "job_interview_appointment_audit_fkey")
+
+  @@index([startAt, id], map: "job_interview_appointment_start_idx")
+  @@map("job_interview_appointment")
+}
+
+model JobRevision {
+  ownerId         String
+  applicationId   String
+  revision        Int
+  summaryMarkdown String
+  resumeMarkdown  String?
+  author          JobRevisionAuthor?
+  pdfReference    String?
+  pdfSha256       String?
+  createdAt       DateTime          @default(now())
+  application     JobApplication    @relation(fields: [ownerId, applicationId], references: [ownerId, id], onDelete: Cascade)
+
+  @@id([ownerId, applicationId, revision])
+  @@map("job_revision")
+}
+
+model JobWorkItem {
+  ownerId       String
+  id            String           @default(uuid())
+  applicationId String
+  kind          JobWorkItemKind
+  revision      Int
+  state         JobWorkItemState @default(queued)
+  payload       Json             @default("{}")
+  attempts      Int              @default(0)
+  availableAt   DateTime         @default(now())
+  leaseTokenHash String?
+  claimedBy     String?
+  leaseUntil    DateTime?
+  resultId      String?
+  resultHash    String?
+  failureCode   String?
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+  application   JobApplication   @relation(fields: [ownerId, applicationId], references: [ownerId, id], onDelete: Cascade)
+
+  @@id([ownerId, id])
+  @@unique([ownerId, applicationId, kind, revision])
+  @@index([ownerId, kind, state, availableAt, createdAt, id], map: "job_work_item_claim_idx")
+  @@map("job_work_item")
+}
+
+model JobEvent {
+  ownerId       String
+  applicationId String
+  id            String         @default(uuid())
+  kind          String
+  revision      Int?
+  eventKey      String?
+  payload       Json           @default("{}")
+  occurredAt    DateTime       @default(now())
+  application   JobApplication @relation(fields: [ownerId, applicationId], references: [ownerId, id], onDelete: Cascade)
+
+  @@id([ownerId, id])
+  @@unique([ownerId, applicationId, eventKey])
+  @@index([ownerId, applicationId, occurredAt, id])
+  @@map("job_event")
+}
+
+model JobRunner {
+  ownerId         String   @id
+  host            String?
+  lastHeartbeatAt DateTime?
+  paused          Boolean  @default(false)
+  pairedKeyHash   String?
+
+  @@map("job_runner")
+}

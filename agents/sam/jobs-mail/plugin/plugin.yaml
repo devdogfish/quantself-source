@@ -1,0 +1,9 @@
+name: quantself-jobs-mail
+version: 0.1.0
+description: "Read the dedicated Jobs inbox through Sam's local mail service."
+author: Quantself
+kind: standalone
+platforms:
+  - linux
+provides_tools:
+  - quantself_jobs_mail

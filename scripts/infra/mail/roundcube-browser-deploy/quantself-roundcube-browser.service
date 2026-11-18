@@ -1,0 +1,30 @@
+[Unit]
+Description=Quantself Atlas private Roundcube browser
+Requires=run-quantself\x2droundcube\x2dinputs.mount
+After=network.target run-quantself\x2droundcube\x2dinputs.mount
+
+[Service]
+Type=exec
+User=quantself-roundcube-browser
+Group=quantself-roundcube-browser
+DynamicUser=yes
+RuntimeDirectory=quantself-roundcube
+RuntimeDirectoryMode=0700
+LoadCredentialEncrypted=des-key:/run/quantself-roundcube-inputs/des-key.cred
+Environment=TMPDIR=/run/quantself-roundcube/tmp
+WorkingDirectory=/opt/quantself-roundcube/browser
+ExecCondition=/opt/quantself-roundcube/browser/check-credential-mount.sh
+ExecStartPre=/opt/quantself-roundcube/browser/prepare-runtime.sh
+ExecStart=/usr/sbin/apache2 -f /opt/quantself-roundcube/browser/apache.conf -DFOREGROUND
+UMask=0077
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=disconnected
+PrivateDevices=yes
+NoNewPrivileges=yes
+CapabilityBoundingSet=
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+MemorySwapMax=0
+LimitCORE=0
+StandardOutput=null
+StandardError=null

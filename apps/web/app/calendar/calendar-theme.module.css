@@ -1,0 +1,51 @@
+/* Calendar-only theme. Wraps the calendar surface and maps the shared todo-workspace styles onto Chakra tokens
+   (light + dark). Base rules in todo-workspace.module.css consume --cal-* with defaults for other views. */
+.theme {
+  --cal-line-soft: var(--chakra-colors-border-muted);
+  --cal-hour: var(--chakra-colors-fg-subtle);
+  --cal-weekend: color-mix(in srgb, var(--chakra-colors-bg-muted) 35%, transparent);
+  --cal-now: var(--chakra-colors-red-solid);
+  --cal-today: var(--chakra-colors-brand-solid);
+  --cal-today-ink: var(--chakra-colors-brand-contrast);
+  --cal-date-size: 26px;
+  --cal-date-font: 13px;
+  --cal-date-weight: 500;
+  --cal-date-radius: 50%;
+  --cal-adjacent: var(--chakra-colors-fg-subtle);
+  --cal-adjacent-opacity: 1;
+  --cal-pill: 100%;
+  --cal-pill-weight: 500;
+  --cal-time-ink: color-mix(in srgb, currentcolor 70%, transparent);
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Event tones -> Chakra palettes. The doubled attribute out-ranks the base :is(...)[data-tone] rules. */
+.theme[data-calendar-theme] [data-tone="teal"][data-tone] { --event-fill: var(--chakra-colors-teal-subtle); --event-ink: var(--chakra-colors-teal-fg); --event-accent: var(--chakra-colors-teal-solid); --event-active-ink: var(--chakra-colors-teal-contrast); }
+.theme[data-calendar-theme] [data-tone="slate"][data-tone] { --event-fill: var(--chakra-colors-gray-subtle); --event-ink: var(--chakra-colors-gray-fg); --event-accent: var(--chakra-colors-gray-solid); --event-active-ink: var(--chakra-colors-gray-contrast); }
+.theme[data-calendar-theme] [data-tone="lavender"][data-tone] { --event-fill: var(--chakra-colors-purple-subtle); --event-ink: var(--chakra-colors-purple-fg); --event-accent: var(--chakra-colors-purple-solid); --event-active-ink: var(--chakra-colors-purple-contrast); }
+.theme[data-calendar-theme] [data-tone="ochre"][data-tone] { --event-fill: var(--chakra-colors-yellow-subtle); --event-ink: var(--chakra-colors-yellow-fg); --event-accent: var(--chakra-colors-yellow-solid); --event-active-ink: var(--chakra-colors-yellow-contrast); }
+.theme[data-calendar-theme] [data-tone="blue"][data-tone] { --event-fill: var(--chakra-colors-blue-subtle); --event-ink: var(--chakra-colors-blue-fg); --event-accent: var(--chakra-colors-blue-solid); --event-active-ink: var(--chakra-colors-blue-contrast); }
+.theme[data-calendar-theme] [data-tone="sage"][data-tone] { --event-fill: var(--chakra-colors-green-subtle); --event-ink: var(--chakra-colors-green-fg); --event-accent: var(--chakra-colors-green-solid); --event-active-ink: var(--chakra-colors-green-contrast); }
+.theme[data-calendar-theme] [data-tone="clay"][data-tone] { --event-fill: var(--chakra-colors-orange-subtle); --event-ink: var(--chakra-colors-orange-fg); --event-accent: var(--chakra-colors-orange-solid); --event-active-ink: var(--chakra-colors-orange-contrast); }
+.theme[data-calendar-theme] [data-tone="rose"][data-tone] { --event-fill: var(--chakra-colors-pink-subtle); --event-ink: var(--chakra-colors-pink-fg); --event-accent: var(--chakra-colors-pink-solid); --event-active-ink: var(--chakra-colors-pink-contrast); }
+
+/* Per-kind event looks (Settings > Appearance). "filled" is the base style and needs no rules. */
+.theme[data-look-task="hatched"] [data-kind="task"]::after,
+.theme[data-look-appointment="hatched"] [data-kind="appointment"]::after,
+.theme[data-look-meeting="hatched"] [data-kind="meeting"]::after { content: ""; position: absolute; inset: 0; z-index: 1; border-radius: 3px; pointer-events: none; background: repeating-linear-gradient(135deg, transparent 0 5px, color-mix(in srgb, var(--chakra-colors-bg) 45%, transparent) 5px 10px); }
+.theme[data-look-task="outlined"] [data-kind="task"],
+.theme[data-look-appointment="outlined"] [data-kind="appointment"],
+.theme[data-look-meeting="outlined"] [data-kind="meeting"] { --event-fill: transparent; }
+.theme[data-look-task="outlined"] [data-kind="task"]::after,
+.theme[data-look-appointment="outlined"] [data-kind="appointment"]::after,
+.theme[data-look-meeting="outlined"] [data-kind="meeting"]::after { content: ""; position: absolute; inset: 0; z-index: 1; border-radius: 3px; pointer-events: none; box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--event-accent) 65%, transparent); }
+.theme[data-look-task="ring"] [data-kind="task"] > *::before,
+.theme[data-look-appointment="ring"] [data-kind="appointment"] > *::before,
+.theme[data-look-meeting="ring"] [data-kind="meeting"] > *::before { left: 9px; top: 9px; bottom: auto; width: 12px; height: 12px; box-sizing: border-box; border-radius: 50%; background: transparent; border: 1.6px solid var(--event-accent); }
+.theme[data-look-task="ring"] [data-kind="task"] > div > :is(a, button),
+.theme[data-look-appointment="ring"] [data-kind="appointment"] > div > :is(a, button),
+.theme[data-look-meeting="ring"] [data-kind="meeting"] > div > :is(a, button) { padding-left: 30px; }

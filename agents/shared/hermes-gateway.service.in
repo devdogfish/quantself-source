@@ -1,0 +1,35 @@
+[Unit]
+Description=Hermes Agent gateway
+Wants=network-online.target hermes-screen.service
+After=network-online.target tailscaled.service hermes-screen.service
+StartLimitIntervalSec=0
+
+[Service]
+User=hermes
+WorkingDirectory=@profile@
+Environment="HERMES_HOME=@profile@"
+Environment="HERMES_MANAGED_DIR=/etc/hermes"
+Environment="HERMES_SUPERVISED_CHILD=1"
+Environment="DISPLAY=:99"
+Environment="XAUTHORITY=/run/quantself-agent-screen/Xauthority"
+Environment="PATH=/usr/local/bin:/usr/bin:/bin"
+# Pin the early secrets bootstrap and leave MCP servers to Managed Scope.
+BindReadOnlyPaths=/etc/hermes/agent-profile.yaml:@profile@/config.yaml
+BindReadOnlyPaths=/etc/hermes/.env:@profile@/.env
+BindReadOnlyPaths=/etc/hermes/honcho.json:@profile@/honcho.json
+BindReadOnlyPaths=/etc/hermes/plugins/quantself-vaultwarden:@profile@/plugins/quantself-vaultwarden@jobs_mail_bind@
+ExecStart=@profile@/hermes-agent/.hermes/bin/hermes gateway run
+# Hermes can stay alive without a listener if the startup keys were unavailable.
+ExecStartPost=/usr/bin/curl --disable --noproxy "*" --fail --silent --show-error --output /dev/null \
+    --max-time 2 --retry 75 --retry-delay 1 --retry-max-time 75 --retry-connrefused \
+    http://@api_host@:@api_port@/health
+Restart=always
+RestartSec=5
+KillMode=mixed
+TimeoutStartSec=90
+TimeoutStopSec=120
+UMask=0077
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target

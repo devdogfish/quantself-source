@@ -1,0 +1,12 @@
+.card { margin-top: 12px; overflow: hidden; border-radius: 12px; border: 1px solid color-mix(in srgb, currentColor 12%, transparent); background: var(--chakra-colors-bg); }
+.surface { position: relative; height: 140px; isolation: isolate; background: color-mix(in srgb, #8aab99 16%, var(--chakra-colors-bg)); }
+.map { height: 100%; width: 100%; z-index: 0; }
+.openMap { position: absolute; inset: 0; z-index: 1; }
+.openMap:focus-visible { outline: 2px solid var(--chakra-colors-brand-focus-ring); outline-offset: -3px; }
+.attribution { position: absolute; bottom: 0; right: 0; z-index: 2; padding: 1px 4px; font-size: 9px; line-height: 14px; background: #ffffffdf; color: #333; }
+.fallback { display: flex; align-items: center; justify-content: center; height: 100%; font-size: 12px; color: var(--chakra-colors-fg-muted); }
+.footer { display: flex; align-items: center; gap: 9px; min-height: 38px; padding: 8px 12px; color: inherit; text-decoration: none; background: color-mix(in srgb, var(--chakra-colors-bg-muted) 70%, transparent); }
+.label { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; line-height: 17px; }
+.pin { background: transparent; }
+.pin span { display: block; width: 25px; height: 25px; border-radius: 50% 50% 50% 0; background: #ee4941; border: 2px solid white; box-shadow: 0 2px 5px #0005; transform: rotate(-45deg); }
+.pin span::after { content: ''; display: block; width: 7px; height: 7px; margin: 7px; border-radius: 50%; background: white; }

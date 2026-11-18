@@ -1,0 +1,230 @@
+:global(html):has(.preview) {
+  scrollbar-gutter: stable;
+}
+
+.preview {
+  margin-inline: auto;
+  width: min(100%, 36rem);
+  min-width: 0;
+}
+
+.controls,
+.views {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.controls {
+  justify-content: space-between;
+  row-gap: 0.5rem;
+  margin-block-end: 0.65rem;
+}
+
+.status {
+  margin-block-end: 0.5rem;
+  color: var(--chakra-colors-fg-muted);
+  font-size: 0.75rem;
+}
+
+.capture {
+  position: relative;
+}
+
+.copyFeedback {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  font-weight: 650;
+  pointer-events: none;
+  animation: copy-confirmation 1600ms ease both;
+}
+
+@keyframes copy-confirmation {
+  0%, 100% { opacity: 0; }
+  9%, 86% { opacity: 1; }
+}
+
+.paper {
+  --ink: #1e1e1e;
+  --faint-ink: #585858;
+  --rule: #b4b4b4;
+  --edge-corner: linear-gradient(var(--paper-border), var(--paper-border));
+  padding: clamp(1rem, 4vw, 1.5rem);
+  background:
+    var(--edge-corner) left top 5px / 1px 6px no-repeat,
+    var(--edge-corner) right top 5px / 1px 6px no-repeat,
+    var(--edge-corner) bottom left / 1px 9px no-repeat,
+    var(--edge-corner) bottom right / 1px 9px no-repeat,
+    var(--paper-top) top / 100% 10px no-repeat,
+    var(--paper-bottom) bottom / 100% 8px no-repeat,
+    var(--paper-left) left top 5px / 5px calc(100% - 5px) no-repeat,
+    var(--paper-right) right top 5px / 5px calc(100% - 5px) no-repeat,
+    linear-gradient(var(--paper), var(--paper)) center top 9px / calc(100% - 8px) calc(100% - 16px) no-repeat;
+  color: var(--ink);
+  font: 0.875rem/1.5 system-ui, sans-serif;
+  font-variant-numeric: tabular-nums;
+}
+
+.masthead {
+  text-align: start;
+}
+
+.masthead h2 {
+  font-size: 0.9375rem;
+  font-weight: 650;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: 0.45rem;
+  margin-block-start: 0.25rem;
+  color: var(--faint-ink);
+  font-size: 0.75rem;
+}
+
+.meta > :not(:first-child)::before {
+  content: "·";
+  margin-inline-end: 0.45rem;
+}
+
+.summaryRow,
+.grandTotal {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, auto);
+  align-items: baseline;
+  gap: 0.65rem;
+  overflow-wrap: anywhere;
+}
+
+.summaryRow {
+  padding-block: 0.125rem;
+}
+
+.summaryRow > :last-child,
+.grandTotal strong,
+.rows td.amount {
+  text-align: end;
+  font-family: ui-monospace, monospace;
+}
+
+.summaryRow[data-adjustment] {
+  color: var(--faint-ink);
+}
+
+.grandTotal {
+  border-top: 1px dashed var(--rule);
+  margin-block-start: 0.65rem;
+  padding-block-start: 0.55rem;
+}
+
+.grandTotal strong {
+  font-size: 1.125rem;
+}
+
+.section {
+  margin-block-start: 0.75rem;
+}
+
+.section:not([data-section="header"]) {
+  padding-block-start: 0.65rem;
+  border-top: 1px dashed var(--rule);
+}
+
+.rows {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.rows td {
+  padding-block: 0.06rem;
+  vertical-align: top;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.rows td.amount {
+  width: 30%;
+  padding-inline-start: 0.6rem;
+  text-align: end;
+}
+
+.section[data-section="header"],
+.section[data-section="footer"] {
+  color: var(--faint-ink);
+  text-align: start;
+}
+
+.rows tr[data-total] td {
+  padding-block: 0.38rem 0.15rem;
+  font-weight: 700;
+  font-size: 1rem;
+  text-transform: uppercase;
+}
+
+.empty {
+  margin-block-start: 0.9rem;
+  color: var(--faint-ink);
+  text-align: start;
+}
+
+.recordedDetails {
+  margin-block-start: 1.2rem;
+  color: var(--faint-ink);
+  font-size: 0.8rem;
+  text-align: center;
+}
+
+.expansion {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transition: grid-template-rows 220ms cubic-bezier(0.2, 0.7, 0.2, 1), opacity 140ms ease;
+}
+
+.expansion[data-open="true"] {
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+
+.detail {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.detail::before {
+  content: "";
+  display: block;
+  margin-block: 1rem 0.75rem;
+  border-top: 1px dashed var(--rule);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .copyFeedback {
+    animation: none;
+  }
+
+  .expansion {
+    transition: none;
+  }
+}
+
+.detail > .section:first-child {
+  margin-block-start: 0;
+  padding-block-start: 0;
+  border-top: 0;
+}
+
+.debug {
+  margin-block-start: 0.75rem;
+  color: var(--chakra-colors-fg-muted);
+  font-size: 0.75rem;
+}

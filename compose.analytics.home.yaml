@@ -1,0 +1,17 @@
+# Apply last, only to the private home analytics project. Caddy on the
+# Quantself VM reaches the relay on loopback; it never joins the public edge.
+services:
+  relay:
+    stop_grace_period: 135s
+    networks: !override
+      - default
+    ports:
+      - "127.0.0.1:${UMAMI_RELAY_PORT:-4311}:4311"
+  postgres:
+    image: postgres:18-alpine@sha256:1018733457011bf88d81db98cf43aac6d5150afc18787dbe204771fedf80ff95
+    networks:
+      default:
+        aliases:
+          - analytics-postgres
+  retention:
+    image: postgres:18-alpine@sha256:1018733457011bf88d81db98cf43aac6d5150afc18787dbe204771fedf80ff95

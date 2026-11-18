@@ -1,0 +1,46 @@
+model WebsiteEvent {
+  id           String   @id @db.Uuid
+  occurredAt   DateTime @map("occurred_at") @db.Timestamptz(3)
+  receivedAt   DateTime @default(now()) @map("received_at") @db.Timestamptz(3)
+  kind         String   @db.VarChar(24)
+  visitorId    String?  @map("visitor_id") @db.Uuid
+  sessionId    String?  @map("session_id") @db.Uuid
+  pageViewId   String?  @map("page_view_id") @db.Uuid
+  ipId         String?  @map("ip_id") @db.VarChar(64)
+  path         String   @db.VarChar(240)
+  linkCode     String?  @map("link_code") @db.VarChar(64)
+  utmSource    String?  @map("utm_source") @db.VarChar(100)
+  utmMedium    String?  @map("utm_medium") @db.VarChar(100)
+  utmCampaign  String?  @map("utm_campaign") @db.VarChar(100)
+  referrerHost String?  @map("referrer_host") @db.VarChar(253)
+  device       String?  @db.VarChar(7)
+  props        Json     @db.JsonB
+
+  @@index([occurredAt], type: Brin)
+  @@index([kind, occurredAt])
+  @@index([linkCode])
+  @@map("website_event")
+}
+
+enum WebsiteInquiryStatus {
+  new
+  replied
+  call_booked
+  won
+  lost
+
+  @@map("website_inquiry_status")
+}
+
+model WebsiteInquiry {
+  id         String               @id @db.Uuid
+  receivedAt DateTime             @default(now()) @map("received_at") @db.Timestamptz(3)
+  name       String               @db.VarChar(120)
+  email      String               @db.VarChar(254)
+  topic      String               @db.VarChar(120)
+  message    String               @db.Text
+  linkCode   String?              @map("link_code") @db.VarChar(64)
+  status     WebsiteInquiryStatus @default(new)
+
+  @@map("website_inquiry")
+}

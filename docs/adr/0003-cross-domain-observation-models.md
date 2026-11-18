@@ -1,0 +1,7 @@
+# Cross-Domain Observation Models
+
+Database models for durable observations should be domain-wide unless the data only exists to run one app experience. Substance intake, subjective check-ins, and completed work sessions are shared facts that can affect health, productivity, and later analysis, so they should not be modeled as 9 to 5 tracker fields; 9 to 5-specific state should stay limited to plan, move queue, pinning, ordering, and UI resync behavior.
+
+Substance intake must support both precise and rough entries because the user cannot always measure dose, such as weighing coffee. Rough intake estimates are valid records, not failed precise records. Values that can be generated from source records should generally stay out of source models and belong in queries, views, or projections.
+
+Use a compact reusable model pair: `Substance` for non-food things taken for active or effect-bearing contents and `SubstanceIntake` for intake events. Coffee, matcha, alcohol, cannabis, tobacco, medication, homeopathy, supplements, and sleep pills should fit this pair without adding many nullable columns. Food and meals are a separate future model unless the food is logged as a carrier for a substance, such as a THC edible. Active substances such as caffeine, ethanol, nicotine, THC, creatine, or medication dose can be derived later from composition/projection data when the intake's source fact supports it.

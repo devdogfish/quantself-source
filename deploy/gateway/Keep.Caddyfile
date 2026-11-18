@@ -1,0 +1,84 @@
+{
+	admin off
+	auto_https disable_redirects
+	servers {
+		protocols h1 h2
+	}
+}
+
+import webhooks.caddy
+import owner-headers.caddy
+
+(keep_app_webhooks) {
+	reverse_proxy 127.0.0.1:3000 {
+		header_up X-Forwarded-Proto https
+		header_up -Cookie
+		header_up -Authorization
+	}
+}
+
+qs.girke.dev {
+	import strip_owner_identity
+	header Cache-Control "private, no-store"
+	bind {$QUANTSELF_TAILNET_IP}
+	tls {
+		dns spaceship {env.LIBDNS_SPACESHIP_APIKEY} {env.LIBDNS_SPACESHIP_APISECRET}
+	}
+	@jobs_runner {
+		# Keep an unmatchable source when the runner setting is absent or empty.
+		remote_ip 0.0.0.0/32 {$QUANTSELF_JOBS_RUNNER_TAILNET_IPS}
+		expression <<CEL
+			({method} == "POST" && (
+				{http.request.orig_uri}.split('?')[0] in ["/api/internal/jobs/work/claim", "/api/internal/jobs/runner/heartbeat"] ||
+				{http.request.orig_uri}.split('?')[0].matches(r'^/api/internal/jobs/work/[0-9A-Fa-f]{8}(-[0-9A-Fa-f]{4}){3}-[0-9A-Fa-f]{12}/(complete|fail|private-fields)$') ||
+				{http.request.orig_uri}.split('?')[0].matches(r'^/api/internal/jobs/submissions/[0-9A-Fa-f]{8}(-[0-9A-Fa-f]{4}){3}-[0-9A-Fa-f]{12}/events$')
+			)) ||
+			({method} in ["GET", "PUT"] &&
+				{http.request.orig_uri}.split('?')[0].matches(r'^/api/internal/jobs/applications/[0-9A-Fa-f]{8}(-[0-9A-Fa-f]{4}){3}-[0-9A-Fa-f]{12}/revisions/[0-9]+/pdf$'))
+		CEL
+	}
+	@internal path /api/internal /api/internal/*
+	@owner {
+		remote_ip {$QUANTSELF_OWNER_TAILNET_IPS}
+		not path /api/health
+		not header X-API-Key *
+		not header Authorization *
+	}
+
+	# Keep the Mac-only Jobs exception before the general internal-route denial.
+	route {
+		handle @jobs_runner {
+			reverse_proxy 127.0.0.1:3001
+		}
+		handle @internal {
+			respond 404
+		}
+		handle @owner {
+			reverse_proxy 127.0.0.1:3000 {
+				header_up X-Quantself-Owner-Proof {env.QUANTSELF_OWNER_INGRESS_TOKEN}
+			}
+		}
+		handle {
+			reverse_proxy 127.0.0.1:3000
+		}
+	}
+}
+
+http://:8443 {
+	import strip_owner_identity
+	bind {$QUANTSELF_TAILNET_IP}
+	@hooks host hooks.girke.dev
+	@gate remote_ip {$GATE_TAILNET_IP}
+	handle @hooks {
+		handle @gate {
+			import native_webhooks keep_app_webhooks
+		}
+		respond 404
+	}
+	respond 404
+}
+
+https://:443 {
+	bind {$QUANTSELF_TAILNET_IP}
+	respond 404
+}

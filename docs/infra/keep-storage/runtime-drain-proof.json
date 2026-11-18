@@ -1,0 +1,52 @@
+{
+  "observedDateUtc": "2026-11-14",
+  "environment": "isolated synthetic Docker networks on quantself",
+  "ciRun": 43565134284,
+  "api": {
+    "capture_persisted": true,
+    "exit_code": 0,
+    "image": "sha256:60abe78f12a689a755699a4719fe6691ad68fb9d4cccff3854d6b130bf1e079d",
+    "marker": "API drain complete",
+    "partial_wav_range_client_reset": true,
+    "sse_active_and_abandoned": true
+  },
+  "gateway": {
+    "config_sha256": "89fc01cd76f80dc1fcdc959bed4649c53a1a6df60c385656ec91e1b1fe9ba507",
+    "deferred_html_and_sse_complete": true,
+    "exit_code": 0,
+    "image": "caddy:2.11.4-alpine@sha256:6aeddd44c3078b0f9a35206472a11420648a79c184603ef95957d0a20044cb2b",
+    "timeline": {
+      "api_stream_released": "2026-11-14T06:54:01.626084057Z",
+      "cleanup_complete": "2026-11-14T06:54:01.315753880Z",
+      "cleanup_start": "2026-11-14T06:54:00.434395984Z",
+      "first_upstream": "2026-11-14T06:54:00.116338010Z",
+      "ingress_closed": "2026-11-14T06:54:00.297006703Z",
+      "released": "2026-11-14T06:54:00.621085915Z",
+      "second_upstream": "2026-11-14T06:54:00.780105275Z"
+    }
+  },
+  "next": {
+    "body": "complete HTML",
+    "exit_code": 143,
+    "fresh_connection_refused": true,
+    "oom_killed": false,
+    "timeline": {
+      "cleanup_complete": "2026-11-14T06:53:53.910357392Z",
+      "cleanup_start": "2026-11-14T06:53:52.812207082Z",
+      "first_upstream": "2026-11-14T06:53:52.697888233Z",
+      "released": "2026-11-14T06:53:53.209192331Z",
+      "second_upstream": "2026-11-14T06:53:53.351125863Z"
+    }
+  },
+  "proof": {
+    "contract": "next-sigterm-deferred-request-v1",
+    "format": 1,
+    "image": "sha256:60abe78f12a689a755699a4719fe6691ad68fb9d4cccff3854d6b130bf1e079d"
+  },
+  "scope": "Pinned image with synthetic upstream and optional synthetic DB. Deployed storage is untested.",
+  "limits": [
+    "Next and Caddy exercised synthetic upstream gates",
+    "API exercised synthetic PostgreSQL, credentials and TLS media upstream",
+    "Coordinated backup and full restore remain pending"
+  ]
+}

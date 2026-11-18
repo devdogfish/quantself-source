@@ -1,0 +1,58 @@
+# Compare escaped paths case-sensitively. Caddy's path matcher normalizes URLs.
+(callbacks) {
+	@app_webhooks <<CEL
+		({method} == "POST" && (
+			{http.request.orig_uri}.split('?')[0] == "/api/v1/phone-jarvis/inbound" ||
+			{http.request.orig_uri}.split('?')[0] == "/api/todo-webhooks/github" ||
+			{http.request.orig_uri}.split('?')[0].matches(r'^/api/v1/phone-jarvis/[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}/(answer|pin|status)$') ||
+			{http.request.orig_uri}.split('?')[0].matches(r'^/api/v1/todo-jarvis/[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}/commands$') ||
+			{http.request.orig_uri}.split('?')[0] in ["/api/v1/todo-categories", "/api/v1/habits/commands", "/api/v1/habits/slips", "/api/v1/habits/system/changes"]
+		)) ||
+		({method} == "GET" && (
+			{http.request.orig_uri}.split('?')[0].matches(r'^/api/v1/todos/[1-9][0-9]*$') ||
+			{http.request.orig_uri}.split('?')[0] in ["/api/v1/todos", "/api/v1/todo-categories", "/api/v1/access-context", "/api/v1/habits/day", "/api/v1/habits/context", "/api/v1/habits/system"]
+		))
+	CEL
+	handle @app_webhooks {
+		import {args[0]}
+	}
+
+}
+
+# Historical Hostinger edge and relay configuration, retained for rollback.
+(webhooks) {
+	@legacy_collector `{method} == "POST" && {http.request.orig_uri}.split('?')[0] == "/api/v1/website-analytics/events"`
+	handle @legacy_collector {
+		import {args[1]}
+	}
+
+	@legacy_registry `{method} in ["GET", "POST"] && {http.request.orig_uri}.split('?')[0] == "/website-analytics/applications/registry"`
+	handle @legacy_registry {
+		import {args[0]}
+	}
+
+	import callbacks {args[0]}
+	handle {
+		respond 404
+	}
+}
+
+(native_webhooks) {
+	@portfolio <<CEL
+		({method} == "POST" && {http.request.orig_uri}.split('?')[0] in [
+			"/api/v1/website-analytics/events", "/api/v1/website-analytics/inquiries",
+			"/api/v1/meetings", "/api/v1/meetings/cancel"
+		]) ||
+		({method} == "GET" && {http.request.orig_uri}.split('?')[0] == "/api/v1/meetings/availability") ||
+		({method} == "GET" &&
+			{http.request.orig_uri}.split('?')[0].matches(r'^/api/v1/tracked-links/[0-9A-Za-z]{1,24}$'))
+	CEL
+	handle @portfolio {
+		import {args[0]}
+	}
+
+	import callbacks {args[0]}
+	handle {
+		respond 404
+	}
+}

@@ -1,0 +1,40 @@
+name: Bootstrap disabled production Phone Jarvis
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: production-deploy
+  cancel-in-progress: false
+jobs:
+  bootstrap:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: production
+    steps:
+      - name: Require main workflow revision
+        env:
+          WORKFLOW_REF: ${{ github.ref }}
+        run: test "$WORKFLOW_REF" = refs/heads/main
+      - uses: actions/checkout@v6
+      - name: Configure SSH
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        run: |
+          set -euo pipefail
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -T 20 -H "$SSH_HOST" >> ~/.ssh/known_hosts
+      - name: Bootstrap verified running main revision without enabling phone
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+          DEPLOY_PATH: ${{ vars.DEPLOY_PATH || '/root/quantself' }}
+          BOOTSTRAP_REVISION: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          [[ "$BOOTSTRAP_REVISION" =~ ^[a-f0-9]{40}$ ]]
+          ssh -i ~/.ssh/deploy_key -o BatchMode=yes -o ConnectTimeout=20 -o IdentitiesOnly=yes -o ServerAliveInterval=30 -o ServerAliveCountMax=3 \
+            "$SSH_USER@$SSH_HOST" "bash -s -- '$DEPLOY_PATH' '$BOOTSTRAP_REVISION'" < scripts/bootstrap-phone-production.sh

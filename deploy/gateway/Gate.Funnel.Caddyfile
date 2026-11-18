@@ -1,0 +1,25 @@
+{
+	admin off
+	auto_https off
+}
+
+import webhooks.caddy
+import owner-headers.caddy
+
+(keep_webhook_origin) {
+	reverse_proxy http://{$QUANTSELF_TAILNET_IP}:8443 {
+		header_up Host hooks.girke.dev
+		header_up -Cookie
+		header_up -Authorization
+	}
+}
+
+http://:8790 {
+	bind 127.0.0.1
+	import strip_owner_identity
+	@funnel host {$QUANTSELF_FUNNEL_HOST}
+	handle @funnel {
+		import native_webhooks keep_webhook_origin
+	}
+	respond 404
+}

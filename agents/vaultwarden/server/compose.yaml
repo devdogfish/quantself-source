@@ -1,0 +1,12 @@
+services:
+  vaultwarden:
+    # Vaultwarden 1.37.5, linux/amd64.
+    image: docker.io/vaultwarden/server@sha256:f8863ab2519364bfc657144006682a830784e0bb501606d5e34516ee76b60b5c
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:18080:80"
+    volumes:
+      - /var/lib/vaultwarden:/data
+    environment:
+      DOMAIN: ${VAULTWARDEN_ORIGIN:?Set the private Tailscale HTTPS origin}
+      SIGNUPS_ALLOWED: "false"

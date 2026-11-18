@@ -1,0 +1,31 @@
+// Independent ledger survives owning-record deletion and interrupted external writes.
+model OriginalFile {
+  key       String @id
+  provider  String @default("opencloud")
+  spaceId   String
+  fileId    String?
+  pathHint  String
+  mime      String
+  bytes     Int
+  sha256    String
+  etag      String?
+  state     String @default("pending")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  attempts  OriginalUploadAttempt[]
+
+  @@index([state, updatedAt])
+  @@index([sha256])
+  @@map("original_file")
+}
+
+model OriginalUploadAttempt {
+  id        String @id @default(uuid())
+  key       String
+  path      String @unique
+  createdAt DateTime @default(now())
+  original  OriginalFile @relation(fields: [key], references: [key])
+
+  @@index([createdAt])
+  @@map("original_upload_attempt")
+}

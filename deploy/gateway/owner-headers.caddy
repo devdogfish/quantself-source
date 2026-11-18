@@ -1,0 +1,7 @@
+(strip_owner_identity) {
+	request_header -X-Quantself-Owner-Proof
+	request_header -Tailscale-User-Login
+	request_header -Tailscale-User-Name
+	request_header -Tailscale-User-Profile-Pic
+	request_header -Tailscale-App-Capabilities
+}

@@ -1,0 +1,33 @@
+# Standalone Umami stack. Keep both published ports on loopback.
+services:
+  umami:
+    image: umamisoftware/umami:3.4.1@sha256:b06a858671ba2dd35acac8852b7a8dfc8da14e646fd18a4f9fdc3cbd13f2c562
+    ports:
+      - "127.0.0.1:${UMAMI_PORT:-4312}:3000"
+    environment:
+      DATABASE_URL: postgresql://umami:${UMAMI_DB_PASSWORD:?Set UMAMI_DB_PASSWORD}@postgres:5432/umami
+      APP_SECRET: ${UMAMI_APP_SECRET:?Set UMAMI_APP_SECRET}
+      PRIVATE_MODE: "1"
+    init: true
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+  postgres:
+    image: postgres:18-alpine
+    ports:
+      - "127.0.0.1:${UMAMI_DB_PORT:-4313}:5432"
+    environment:
+      POSTGRES_DB: umami
+      POSTGRES_USER: umami
+      POSTGRES_PASSWORD: ${UMAMI_DB_PASSWORD:?Set UMAMI_DB_PASSWORD}
+    volumes:
+      - analytics-db:/var/lib/postgresql
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "umami", "-d", "umami"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+volumes:
+  analytics-db:

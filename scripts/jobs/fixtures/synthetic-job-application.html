@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+  <meta charset="utf-8">
+  <title>Job Application for {{role}} at {{company}}</title>
+  <h1>{{role}}</h1>
+  <form id="application-form" method="post">
+    <label for="first_name">First Name</label><input id="first_name" name="first_name" required>
+    <label for="last_name">Last Name</label><input id="last_name" name="last_name" required>
+    <label for="email">Email</label><input id="email" name="email" type="email" required>
+    <label for="application_source">Application source</label><input id="application_source" name="application_source" required>
+    <label for="resume">Resume/CV</label><input id="resume" name="resume" type="file" required>
+    <button type="submit">Submit application</button>
+  </form>
+  <script>
+    const form = document.querySelector('form');
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const response = await fetch('/synthetic-submit', { method: 'POST', body: new FormData(form) });
+      if (response.ok) {
+        history.replaceState(null, '', location.pathname + '/confirmation');
+        const heading = document.createElement('h1');
+        heading.textContent = 'Application submitted!';
+        form.replaceWith(heading);
+      }
+    });
+  </script>
+</html>

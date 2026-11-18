@@ -1,0 +1,97 @@
+# Rehearsal template. Install as .github/workflows/promote-keep.yml only in the approved disposable control repo.
+name: Atlas private relay rehearsal
+run-name: Promote Quantself ${{ inputs.source_sha }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_sha:
+        description: Exact Quantself source commit approved for the rehearsal
+        required: true
+        type: string
+
+permissions:
+  actions: read
+  contents: read
+
+concurrency:
+  group: production-deploy
+  cancel-in-progress: false
+
+jobs:
+  relay:
+    if: >-
+      ${{ github.event_name == 'workflow_dispatch' &&
+          github.ref == 'refs/heads/main' && github.ref_protected &&
+          github.repository_id == vars.ATLAS_CANARY_REPOSITORY_ID &&
+          github.repository != 'devdogfish/quantself' }}
+    runs-on: [self-hosted, linux, x64, quantself-atlas-control-canary]
+    environment: atlas-control-canary
+    timeout-minutes: 2
+    steps:
+      - name: Send the exact request to the synthetic SSH endpoint
+        shell: bash
+        env:
+          SOURCE_SHA: ${{ inputs.source_sha }}
+          CANARY_REPOSITORY_ID: ${{ vars.ATLAS_CANARY_REPOSITORY_ID }}
+          CANARY_SSH_HOST: ${{ vars.ATLAS_CANARY_SSH_HOST }}
+          CANARY_SSH_KNOWN_HOST: ${{ vars.ATLAS_CANARY_SSH_KNOWN_HOST }}
+          CANARY_SSH_KEY: ${{ secrets.ATLAS_CANARY_SSH_KEY }}
+          CANARY_JOB_TOKEN: ${{ github.token }}
+        run: |
+          set +x
+          set -euo pipefail
+          umask 077
+          export LC_ALL=C
+          reject() { printf '%s\n' 'Atlas relay rehearsal rejected.' >&2; exit 1; }
+          unset token ssh_key
+          token=${CANARY_JOB_TOKEN-}
+          ssh_key=${CANARY_SSH_KEY-}
+          unset CANARY_JOB_TOKEN CANARY_SSH_KEY
+          shopt -s nocasematch
+          [[ ${GITHUB_REPOSITORY-} != devdogfish/quantself ]] || reject
+          shopt -u nocasematch
+
+          [[ ${GITHUB_SERVER_URL-} == https://github.com &&
+             ${GITHUB_EVENT_NAME-} == workflow_dispatch &&
+             ${GITHUB_REF-} == refs/heads/main && ${GITHUB_REF_PROTECTED-} == true &&
+             -n ${GITHUB_REPOSITORY-} &&
+             ${CANARY_REPOSITORY_ID-} =~ ^[1-9][0-9]{0,19}$ &&
+             ${GITHUB_REPOSITORY_ID-} == "$CANARY_REPOSITORY_ID" &&
+             ${SOURCE_SHA-} =~ ^[0-9a-f]{40}$ &&
+             ${GITHUB_RUN_ID-} =~ ^[1-9][0-9]{0,19}$ &&
+             ${GITHUB_RUN_ATTEMPT-} =~ ^[1-9][0-9]{0,9}$ ]] || reject
+          [[ ${#token} -lt 4096 && $token =~ ^ghs_[A-Za-z0-9_.-]+$ &&
+             -n $ssh_key && ${#ssh_key} -le 8192 ]] || reject
+
+          host=${CANARY_SSH_HOST-}
+          pin=${CANARY_SSH_KNOWN_HOST-}
+          [[ $host =~ ^[a-z0-9][a-z0-9.-]{0,252}$ ]] || reject
+          prefix="$host ssh-ed25519 "
+          [[ $pin == "$prefix"* ]] || reject
+          [[ ${pin#"$prefix"} =~ ^[A-Za-z0-9+/]{68}$ ]] || reject
+
+          scratch=$(mktemp -d) || reject
+          trap 'rm -rf -- "$scratch"' EXIT
+          printf '%s\n' "$ssh_key" > "$scratch/identity"
+          unset ssh_key
+          printf '%s\n' "$pin" > "$scratch/known_hosts"
+          printf 'atlas-relay-canary-ok %s %s %s\n' \
+            "$SOURCE_SHA" "$GITHUB_RUN_ID" "$GITHUB_RUN_ATTEMPT" > "$scratch/expected"
+          reply_limit=$(( $(wc -c < "$scratch/expected") + 1 ))
+
+          if ! printf 'promote-atlas %s %s %s\n%s\n' \
+              "$SOURCE_SHA" "$GITHUB_RUN_ID" "$GITHUB_RUN_ATTEMPT" "$token" |
+            timeout --kill-after=2s 35s ssh -F /dev/null -T -x \
+              -o BatchMode=yes -o IdentitiesOnly=yes -o IdentityAgent=none -o PreferredAuthentications=publickey \
+              -o ClearAllForwardings=yes -o StrictHostKeyChecking=yes -o UpdateHostKeys=no \
+              -o HostKeyAlgorithms=ssh-ed25519 -o GlobalKnownHostsFile=/dev/null \
+              -o UserKnownHostsFile="$scratch/known_hosts" -o ConnectTimeout=8 \
+              -o ServerAliveInterval=5 -o ServerAliveCountMax=2 -i "$scratch/identity" \
+              -- "quantself-canary@$host" atlas-relay-canary 2>/dev/null |
+            head -c "$reply_limit" > "$scratch/reply"; then
+            reject
+          fi
+          unset token
+          cmp -s "$scratch/expected" "$scratch/reply" || reject
+          printf '%s\n' 'Atlas relay rehearsal acknowledged.'

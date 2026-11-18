@@ -1,0 +1,13 @@
+[Unit]
+Description=Quantself production deploy socket
+
+[Socket]
+ListenStream=/run/quantself-deploy.sock
+SocketUser=deploy
+SocketMode=0600
+Accept=yes
+MaxConnections=1
+RemoveOnStop=yes
+
+[Install]
+WantedBy=sockets.target

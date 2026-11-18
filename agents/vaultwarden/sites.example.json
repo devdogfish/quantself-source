@@ -1,0 +1,31 @@
+{
+  "75a0e691-9a78-4857-9017-1897e2daa7aa": {
+    "login_url": "https://www.login.example.com/sign-in",
+    "verify_url": "https://www.login.example.com/account",
+    "username_selector": "input[name=username]",
+    "password_selector": "input[type=password]",
+    "submit_selector": "button[type=submit]",
+    "signed_in_selector": "[data-signed-in]",
+    "challenge_selectors": ["[data-device-challenge]", "input[autocomplete=one-time-code]"],
+    "cookie_names": ["session"],
+    "totp": {
+      "url": "https://www.login.example.com/sign-in/verification",
+      "action_url": "https://www.login.example.com/sign-in/verify-code",
+      "code_selector": "input[autocomplete=one-time-code]",
+      "submit_selector": "button[data-verify-code]"
+    },
+    "forms": {
+      "save_draft": {
+        "approval": "owner",
+        "url": "https://www.login.example.com/drafts/new",
+        "action_url": "https://www.login.example.com/drafts",
+        "submit_selector": "button[data-save-draft]",
+        "fields": {
+          "subject": "input[name=subject]",
+          "body": "textarea[name=body]"
+        },
+        "success_selector": "[data-draft-saved]"
+      }
+    }
+  }
+}

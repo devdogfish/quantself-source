@@ -1,0 +1,25 @@
+# Optional Keep overlay. Apply only with the reviewed private mounts.
+services:
+  api:
+    environment:
+      QUANTSELF_JOBS_ROUNDCUBE_ORIGINALS_ENABLED: ${QUANTSELF_JOBS_ROUNDCUBE_ORIGINALS_ENABLED:-0}
+      QUANTSELF_JOBS_ROUNDCUBE_ATTACHMENT_PARTS_ENABLED: ${QUANTSELF_JOBS_ROUNDCUBE_ATTACHMENT_PARTS_ENABLED:-0}
+      QUANTSELF_JOBS_ROUNDCUBE_SOURCE_ENABLED: ${QUANTSELF_JOBS_ROUNDCUBE_SOURCE_ENABLED:-0}
+      QUANTSELF_JOBS_ROUNDCUBE_URL: ${QUANTSELF_JOBS_ROUNDCUBE_URL:-}
+      QUANTSELF_JOBS_ROUNDCUBE_MAILBOX_ACCOUNT: ${QUANTSELF_JOBS_ROUNDCUBE_MAILBOX_ACCOUNT:-}
+      QUANTSELF_JOBS_ROUNDCUBE_OBSERVER_TRANSPORT: dedicated
+      QUANTSELF_JOBS_ROUNDCUBE_OBSERVER_SOCKET: /run/quantself-roundcube-observer/observe.sock
+      QUANTSELF_JOBS_ROUNDCUBE_SIGNING_KEY_FILE: /run/quantself-roundcube-signer/signing.pem
+    volumes:
+      - type: bind
+        source: /run/quantself-roundcube-observer
+        target: /run/quantself-roundcube-observer
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ${QUANTSELF_JOBS_ROUNDCUBE_SIGNING_KEY_HOST_FILE:?Set the private root-only signing file path}
+        target: /run/quantself-roundcube-signer/signing.pem
+        read_only: true
+        bind:
+          create_host_path: false

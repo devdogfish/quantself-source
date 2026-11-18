@@ -1,0 +1,26 @@
+.git
+.github
+.next
+**/.next
+**/dist
+node_modules
+**/node_modules
+.env
+.env.*
+!.env.example
+Dockerfile*
+docker-compose*.yml
+README.md
+**/*.test.ts
+**/*.test.tsx
+**/*.test.mjs
+**/*.test.mts
+**/*.tsbuildinfo
+.cache
+
+# The standalone Umami collector is staged separately from the checkout for rollback.
+apps/api/src/website-analytics-route.ts
+apps/api/src/website-analytics-standalone.ts
+scripts/website-analytics/setup.ts
+scripts/website-analytics/stage-live.sh
+scripts/website-analytics/retention.sql

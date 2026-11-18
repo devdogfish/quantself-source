@@ -1,0 +1,10 @@
+{
+  "name": "@quantself/budgeting",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./tax-model": "./src/tax-model.ts",
+    "./tax-calc": "./src/tax-calc.ts"
+  }
+}

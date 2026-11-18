@@ -1,0 +1,37 @@
+// Notification delivery state belongs to the API; task facts remain in GitHub.
+model NotificationSettings {
+  ownerId String @id
+  enabled Boolean @default(false)
+  enabledAt DateTime @default(now())
+  morning String @default("09:00")
+  @@map("notification_settings")
+}
+model NotificationTask {
+  ownerId String
+  number Int
+  minutes Int? @default(10)
+  morning String?
+  updatedAt DateTime @updatedAt
+  @@id([ownerId, number])
+  @@map("notification_task")
+}
+model NotificationDevice {
+  id String @id @default(uuid())
+  ownerId String
+  endpoint String @unique
+  p256dh String
+  auth String
+  timeZone String
+  createdAt DateTime @default(now())
+  @@index([ownerId])
+  @@map("notification_device")
+}
+model NotificationReceipt {
+  deviceId String
+  key String
+  claimedAt DateTime @default(now())
+  sentAt DateTime?
+  @@id([deviceId, key])
+  @@index([claimedAt])
+  @@map("notification_receipt")
+}

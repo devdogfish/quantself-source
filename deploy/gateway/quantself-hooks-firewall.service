@@ -1,0 +1,9 @@
+[Unit]
+Description=Quantself webhook relay firewall
+Before=quantself-hooks.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/sbin/nft -f /etc/quantself-hooks/gate-firewall.nft
+ExecStop=/usr/sbin/nft delete table inet quantself_hook_relay
+RemainAfterExit=yes

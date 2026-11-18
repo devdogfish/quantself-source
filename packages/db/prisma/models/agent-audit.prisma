@@ -1,0 +1,19 @@
+model AgentWriteAudit {
+  id             String   @id @default(uuid())
+  ownerId        String
+  clientId       String
+  clientName     String
+  resourceType   String
+  resourceId     String
+  revisionBefore Int
+  revisionAfter  Int
+  before         Json
+  after          Json
+  createdAt      DateTime @default(now())
+  undoneAt       DateTime?
+  interviewAppointment JobInterviewAppointment?
+  inboxTodo AgentInboxTodo?
+
+  @@index([ownerId, createdAt, id], map: "agent_write_audit_owner_timeline_idx")
+  @@map("agent_write_audit")
+}

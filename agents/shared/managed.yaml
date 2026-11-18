@@ -1,0 +1,83 @@
+# Shared Managed Scope policy for the three dedicated Agent machines.
+model:
+  provider: openai-codex
+  default: gpt-6.1-sol
+fallback_providers: []
+
+approvals:
+  mode: smart
+  cron_mode: deny
+  single_query_mode: deny
+  unattended_mode: deny
+
+platform_toolsets:
+  api_server: &coworker_tools
+    - file
+    - terminal
+    - web
+    - browser
+    - computer_use
+    - vision
+    - memory
+    - skills
+    - session_search
+    - todo
+    - clarify
+    - delegation
+    - code_execution
+    - hq
+    - quantself_vaultwarden@jobs_mail_toolset@
+  cli: *coworker_tools
+
+agent:
+  disabled_toolsets:
+    - cronjob
+    - catalog
+    - connections
+    - desktop_ui
+    - project
+    - kanban
+    - image_gen
+    - video_gen
+    - video
+    - tts
+    - x_search
+    - discord
+    - discord_admin
+    - feishu_doc
+    - feishu_drive
+
+plugins:
+  enabled: [honcho, quantself-vaultwarden@jobs_mail_plugin@]
+  disabled: []
+  auto_apply: false
+  entries:
+    quantself-vaultwarden:
+      mcp_allowlist: [hq]
+
+security:
+  redact_secrets: true
+
+terminal:
+  backend: local
+  cwd: @workspace@
+
+vault:
+  bitwarden:
+    enabled: false
+  onepassword:
+    enabled: false
+
+mcp_servers:
+  hq:
+    url: @hq_mcp_url@
+    headers:
+      Authorization: "Bearer ${BOT_HQ_MCP_TOKEN}"
+    timeout: 1800
+    connect_timeout: 30
+
+skills:
+  external_dirs: []
+
+bot_desktop:
+  auto_start: false

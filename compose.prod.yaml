@@ -1,0 +1,154 @@
+x-production-image: &production-image
+  image: quantself-app
+
+services:
+  migrate:
+    environment:
+      DATABASE_URL: ${DATABASE_URL:?DATABASE_URL is required}
+      NODE_ENV: production
+
+  app:
+    container_name: quantself-next
+    environment:
+      DATABASE_URL: ${DATABASE_URL:?DATABASE_URL is required}
+      NODE_ENV: production
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:-}
+      BETTER_AUTH_SECRET_FILE: /run/quantself/auth-secret
+      QUANTSELF_PUBLIC_ORIGIN: ${QUANTSELF_PUBLIC_ORIGIN:-${BETTER_AUTH_URL:?Set QUANTSELF_PUBLIC_ORIGIN}}
+      QUANTSELF_INSTANCE_NAME: ${QUANTSELF_INSTANCE_NAME:?QUANTSELF_INSTANCE_NAME is required}
+      QUANTSELF_OWNER_EMAIL: ${QUANTSELF_OWNER_EMAIL:?QUANTSELF_OWNER_EMAIL is required}
+      NEXT_TELEMETRY_DISABLED: "1"
+      PORT: "3000"
+      HOSTNAME: "0.0.0.0"
+      QUANTSELF_API_INTERNAL_URL: http://api:3001
+      # Compose interpolates this file before applying the native home override.
+      QUANTSELF_UMAMI_WEBSITE_ID: ${QUANTSELF_UMAMI_WEBSITE_ID:-}
+      QUANTSELF_UMAMI_READ_DATABASE_URL: ${QUANTSELF_UMAMI_READ_DATABASE_URL:-}
+      APPLICATION_LINKS_TOKEN: ${APPLICATION_LINKS_TOKEN:-}
+      INVENTORY_UPLOAD_DIR: /app/storage/inventory-images
+      INVENTORY_AUDIO_UPLOAD_DIR: /app/storage/inventory-audio
+      INVENTORY_ASSET_UPLOAD_DIR: /app/storage/inventory-assets
+
+    networks:
+      - quantself_internal
+      - portfolio_analytics
+
+  api:
+    container_name: quantself-api
+    environment:
+      DATABASE_URL: ${DATABASE_URL:?DATABASE_URL is required}
+      NODE_ENV: production
+      API_PORT: "3001"
+      GIRKE_API_BASE_URL: ${GIRKE_API_BASE_URL:-}
+      GIRKE_API_TOKEN: ${GIRKE_API_TOKEN:-}
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:-}
+      BETTER_AUTH_SECRET_FILE: /run/quantself/auth-secret
+      QUANTSELF_PUBLIC_ORIGIN: ${QUANTSELF_PUBLIC_ORIGIN:-${BETTER_AUTH_URL:?Set QUANTSELF_PUBLIC_ORIGIN}}
+      QUANTSELF_INSTANCE_NAME: ${QUANTSELF_INSTANCE_NAME:?QUANTSELF_INSTANCE_NAME is required}
+      QUANTSELF_OWNER_EMAIL: ${QUANTSELF_OWNER_EMAIL:?QUANTSELF_OWNER_EMAIL is required}
+      INVENTORY_UPLOAD_DIR: /app/storage/inventory-images
+      INVENTORY_AUDIO_UPLOAD_DIR: /app/storage/inventory-audio
+      INVENTORY_ASSET_UPLOAD_DIR: /app/storage/inventory-assets
+      INVENTORY_PREPROCESSING_WORKER_SECRET: ${INVENTORY_PREPROCESSING_WORKER_SECRET:?INVENTORY_PREPROCESSING_WORKER_SECRET is required}
+      INVENTORY_ENRICHMENT_WORKER_SECRET: ${INVENTORY_ENRICHMENT_WORKER_SECRET:?INVENTORY_ENRICHMENT_WORKER_SECRET is required}
+      JOBS_WORKER_SECRET: ${JOBS_WORKER_SECRET:-}
+      JOBS_RUNNER_SECRET: ${JOBS_RUNNER_SECRET:-}
+
+  gateway:
+    container_name: quantself-web
+    networks:
+      - quantself_internal
+      - girke_edge
+
+  inventory-preprocessing-worker:
+    <<: *production-image
+    container_name: quantself-inventory-preprocessing-worker
+    restart: unless-stopped
+    command:
+      [
+        "bun",
+        "run",
+        "--cwd",
+        "apps/web",
+        "run-inventory-preprocessing-worker",
+      ]
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: ${DATABASE_URL:?DATABASE_URL is required}
+      GIRKE_API_BASE_URL: ${GIRKE_API_BASE_URL:-}
+      GIRKE_API_TOKEN: ${GIRKE_API_TOKEN:-}
+      INVENTORY_PREPROCESSING_WORKER_BASE_URL: http://api:3001
+      INVENTORY_PREPROCESSING_WORKER_BATCH_SIZE: "1"
+      INVENTORY_PREPROCESSING_WORKER_LEASE_SECONDS: "300"
+      INVENTORY_PREPROCESSING_WORKER_SECRET: ${INVENTORY_PREPROCESSING_WORKER_SECRET:?INVENTORY_PREPROCESSING_WORKER_SECRET is required}
+    depends_on:
+      api:
+        condition: service_healthy
+    volumes:
+      - quantself_inventory_uploads:/app/storage/inventory-images
+      - quantself_inventory_audio_uploads:/app/storage/inventory-audio
+      - quantself_inventory_asset_uploads:/app/storage/inventory-assets
+    networks:
+      - quantself_internal
+
+  inventory-codex-enrichment-worker:
+    <<: *production-image
+    container_name: quantself-inventory-codex-worker
+    restart: unless-stopped
+    command:
+      [
+        "bun",
+        "run",
+        "--cwd",
+        "apps/web",
+        "run-inventory-codex-enrichment-worker",
+      ]
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: ${DATABASE_URL:?DATABASE_URL is required}
+      CODEX_HOME: /codex-home
+      INVENTORY_ENRICHMENT_WORKER_BASE_URL: http://api:3001
+      INVENTORY_ENRICHMENT_WORKER_BATCH_SIZE: "1"
+      INVENTORY_ENRICHMENT_WORKER_LEASE_SECONDS: "300"
+      INVENTORY_ENRICHMENT_WORKER_SECRET: ${INVENTORY_ENRICHMENT_WORKER_SECRET:?INVENTORY_ENRICHMENT_WORKER_SECRET is required}
+    depends_on:
+      api:
+        condition: service_healthy
+    volumes:
+      - quantself_codex_home:/codex-home
+    networks:
+      - quantself_internal
+
+  postgres:
+    container_name: quantself-postgres
+
+  jobs-codex-worker:
+    <<: *production-image
+    profiles: [jobs-worker]
+    restart: "no"
+    command: ["bun", "run", "--cwd", "apps/web", "run-jobs-codex-worker"]
+    environment:
+      NODE_ENV: production
+      CODEX_HOME: /codex-home
+      JOBS_WORKER_BASE_URL: http://api:3001
+      JOBS_WORKER_SECRET: ${JOBS_WORKER_SECRET:-}
+      JOBS_WORKER_OUTBOX: /jobs-outbox
+    depends_on:
+      api:
+        condition: service_healthy
+    volumes:
+      - quantself_codex_home:/codex-home
+      - quantself_jobs_codex_outbox:/jobs-outbox
+    networks:
+      - quantself_internal
+
+volumes:
+  quantself_jobs_codex_outbox:
+
+networks:
+  portfolio_analytics:
+    external: true
+    name: portfolio-analytics_default
+  girke_edge:
+    external: true
+    name: girke-edge

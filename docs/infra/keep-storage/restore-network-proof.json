@@ -1,0 +1,125 @@
+{
+  "hostLab": {
+    "phase": "verified_isolated",
+    "bridge": "vmbr254",
+    "hostAddresses": [],
+    "testerNamespace": "keep-restore-254",
+    "testerAddress": "192.0.2.41/24",
+    "testerDnsConfigured": false,
+    "testerDefaultRoute": false,
+    "testerIpv6Enabled": false,
+    "firewallSha256": "4ca210cd8c86f91ae7ef65466fce9d91dea774dad2a57459fea3a4d7a1002a67",
+    "bridgePorts": [
+      "tap2542i0",
+      "tap2543i0",
+      "kr254-host"
+    ]
+  },
+  "negativeProbes": {
+    "redacted-endpoint-12.invalid": {
+      "bridgeInputDrops": 1,
+      "reply": false
+    },
+    "198.51.100.1": {
+      "bridgeInputDrops": 1,
+      "reply": false
+    }
+  },
+  "namespaceBaselineRestored": true,
+  "guestNicsAttached": true,
+  "guestConnectivityChecks": {
+    "tcp": "verified no route from either guest",
+    "arp": {
+      "requestsSent": 4,
+      "bridgeInputDropDelta": 4,
+      "counterScope": "aggregate bridge input drops"
+    },
+    "negativeTargets": {
+      "keepLan": "redacted-endpoint-12.invalid",
+      "testNet2": "198.51.100.1"
+    },
+    "guestResults": {
+      "2542": {
+        "noDefaultOrIpv6Routes": true,
+        "keepLan": {
+          "tcp": "no_route",
+          "arpSent": 1
+        },
+        "testNet2": {
+          "tcp": "no_route",
+          "arpSent": 1
+        }
+      },
+      "2543": {
+        "noDefaultOrIpv6Routes": true,
+        "keepLan": {
+          "tcp": "no_route",
+          "arpSent": 1
+        },
+        "testNet2": {
+          "tcp": "no_route",
+          "arpSent": 1
+        }
+      }
+    },
+    "containerEgress": {
+      "status": "sampled endpoints verified",
+      "isolatedVaultIssuer": true,
+      "tcpUnavailable": {
+        "keep_lan": true,
+        "public_test": true
+      },
+      "liveHostBoundaryVerified": true,
+      "testedTcpTargets": {
+        "keep_lan": "redacted-endpoint-12.invalid:22",
+        "public_test": "198.51.100.1:443"
+      },
+      "scope": "TCP results apply to these sampled endpoints."
+    },
+    "vaultHttps": {
+      "status": "verified",
+      "trustedTls": true,
+      "isolatedIssuer": true,
+      "verificationVantagePoints": [
+        "Keep test namespace",
+        "Mac tunnel"
+      ]
+    },
+    "quantselfHttps": {
+      "status": "verified",
+      "trustedFromKeepNamespace": true,
+      "macHealthHttpStatus": 200,
+      "macTlsVerifyResult": 0
+    }
+  },
+  "clones": {
+    "files": {
+      "vmId": 2542,
+      "state": "running isolated",
+      "mac": "02:54:00:00:02:42",
+      "address": "192.0.2.42/24",
+      "defaultRoute": false,
+      "ipv6Enabled": false,
+      "originalContainersExited": 2,
+      "originalContainerRestartPolicy": "no",
+      "restoreFirewallActive": true,
+      "exactRestoreFirewallRulesVerified": true,
+      "dockerRequiresRestoreFirewall": true,
+      "tailscaleAndCloudTargetsMasked": true
+    },
+    "quantself": {
+      "vmId": 2543,
+      "state": "running isolated",
+      "mac": "02:54:00:00:02:43",
+      "address": "192.0.2.43/24",
+      "defaultRoute": false,
+      "ipv6Enabled": false,
+      "originalContainersExited": 6,
+      "originalContainerRestartPolicy": "no",
+      "restoreFirewallActive": true,
+      "exactRestoreFirewallRulesVerified": true,
+      "dockerRequiresRestoreFirewall": true,
+      "tailscaleAndCloudTargetsMasked": true
+    }
+  }
+}

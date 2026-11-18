@@ -1,0 +1,46 @@
+services:
+  imap-fixture:
+    environment:
+      QS_ROUNDCUBE_FIXTURE_MID_FETCH: "${QS_ROUNDCUBE_FIXTURE_MID_FETCH:-0}"
+    image: docker.io/library/python@sha256:9ef1a599f863231c3d91e941389bfdc4a2d6070557243d54df1a4e57015b960e
+    command: ["python", "-u", "/fixture/imap_peer.py", "--host", "0.0.0.0"]
+    volumes:
+      - .:/fixture:ro
+      - ${QS_ROUNDCUBE_FIXTURE_STATE:?}/imap.log:/fixture-state/imap.log
+  roundcube:
+    image: docker.io/roundcube/roundcubemail@sha256:37a90cb245228080779462fd120db3d64335e1abbec33bda94ca18c9e163881b
+    environment:
+      QS_ROUNDCUBE_FIXTURE_STOCK_LINKS: "${QS_ROUNDCUBE_FIXTURE_STOCK_LINKS:-0}"
+      QS_ROUNDCUBE_FIXTURE_NATIVE_SHOW: "${QS_ROUNDCUBE_FIXTURE_NATIVE_SHOW:-0}"
+      QS_ROUNDCUBE_FIXTURE_NATIVE_PROBE: "${QS_ROUNDCUBE_FIXTURE_NATIVE_PROBE:-0}"
+      QS_ROUNDCUBE_FIXTURE_STOCK_STREAM: "${QS_ROUNDCUBE_FIXTURE_STOCK_STREAM:-0}"
+      ROUNDCUBEMAIL_DB_TYPE: sqlite
+      ROUNDCUBEMAIL_DEFAULT_HOST: imap-fixture
+      ROUNDCUBEMAIL_DEFAULT_PORT: "1143"
+      ROUNDCUBEMAIL_PLUGINS: original_fixture
+    volumes:
+      - ${QS_ROUNDCUBE_FIXTURE_STATE:?}/attachment-links.json:/fixture/attachment-links.json:ro
+      - ../roundcube-reference/verify.php:/fixture/reference-verifier.php:ro
+      - ../roundcube-reference/mailbox.php:/fixture/mailbox-policy.php:ro
+      - ${QS_ROUNDCUBE_FIXTURE_STATE:?}/public.key:/fixture/public.key:ro
+      - ./fixture-config.php:/var/roundcube/config/fixture.php:ro
+      - ./bounded_imap.php:/fixture/bounded_imap.php:ro
+      - ./original_fixture.php:/fixture/original_fixture.php:ro
+      - ./install-plugin.sh:/entrypoint-tasks/post-setup/install-fixture:ro
+  http-proof:
+    environment:
+      QS_ROUNDCUBE_FIXTURE_LOGIN_RETRY: "${QS_ROUNDCUBE_FIXTURE_LOGIN_RETRY:-0}"
+      QS_ROUNDCUBE_FIXTURE_LOGIN_RESUME: "${QS_ROUNDCUBE_FIXTURE_LOGIN_RESUME:-0}"
+      QS_ROUNDCUBE_FIXTURE_STOCK_LINKS: "${QS_ROUNDCUBE_FIXTURE_STOCK_LINKS:-0}"
+      QS_ROUNDCUBE_FIXTURE_NATIVE_SHOW: "${QS_ROUNDCUBE_FIXTURE_NATIVE_SHOW:-0}"
+      QS_ROUNDCUBE_FIXTURE_NATIVE_PROBE: "${QS_ROUNDCUBE_FIXTURE_NATIVE_PROBE:-0}"
+      QS_ROUNDCUBE_FIXTURE_STOCK_STREAM: "${QS_ROUNDCUBE_FIXTURE_STOCK_STREAM:-0}"
+      QS_ROUNDCUBE_FIXTURE_MID_FETCH: "${QS_ROUNDCUBE_FIXTURE_MID_FETCH:-0}"
+    image: docker.io/library/python@sha256:9ef1a599f863231c3d91e941389bfdc4a2d6070557243d54df1a4e57015b960e
+    command: ["python", "-u", "/fixture/http_proof.py"]
+    volumes:
+      - .:/fixture:ro
+      - ${QS_ROUNDCUBE_FIXTURE_STATE:?}:/fixture-state:ro
+networks:
+  default:
+    internal: true

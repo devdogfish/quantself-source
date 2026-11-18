@@ -1,0 +1,56 @@
+{
+  "name": "quantself",
+  "private": true,
+  "scripts": {
+    "preview:website-analytics": "bun apps/web/scripts/run-website-analytics-preview.ts",
+    "preview:habits": "bun apps/web/scripts/run-habits-preview.ts",
+    "preview:todo": "bun apps/web/scripts/run-todo-preview.ts",
+    "preview:jobs": "bun apps/web/scripts/run-jobs-preview.ts",
+    "dev": "bun run scripts/dev.ts",
+    "dev:clean": "bun run scripts/dev-clean.ts",
+    "dev:service": "bun run scripts/dev-service.ts",
+    "dev:api": "bun run --cwd apps/api dev",
+    "start:api": "bun run --cwd apps/api start",
+    "build": "cd apps/web && bun run build",
+    "build:api": "bun run --cwd apps/api build",
+    "start": "cd apps/web && bun run start",
+    "agent-key:create": "bun run --cwd packages/auth agent-key:create",
+    "prod": "bun run scripts/ops-cli.ts prod",
+    "dns:girke": "bun scripts/infra/check-girke-dns.ts",
+    "run-inventory-preprocessing-worker": "bun run --cwd apps/web run-inventory-preprocessing-worker",
+    "run-inventory-codex-enrichment-worker": "bun run --cwd apps/web run-inventory-codex-enrichment-worker",
+    "db:generate": "cd packages/db && bun x --bun prisma generate",
+    "db:migrate": "bun run --cwd packages/db migrate",
+    "db:migrate:dev": "bun run --cwd packages/db migrate:dev",
+    "db:migrate:deploy": "bun run --cwd packages/db migrate:deploy",
+    "db:migrate:reset": "bun run --cwd packages/db migrate:reset",
+    "db:seed": "cd packages/db && bun run seed",
+    "data:pull-production": "bash scripts/pull-production-data.sh",
+    "generate:api-client": "bun run --cwd apps/web generate:api-client",
+    "generate:cli": "bun packages/cli/scripts/generate-commands.ts",
+    "quantself": "bun packages/cli/src/index.ts",
+    "sandcastle": "QUANTSELF_POSTGRES_PORT=0 docker compose -p quantself-sandcastle -f compose.yaml -f compose.dev.yaml up -d --wait postgres && bun .sandcastle/main.mts",
+    "test": "bun scripts/test-suite.ts",
+    "typecheck": "bun run --cwd packages/db generate && bun run --cwd packages/db typecheck && bun run --cwd packages/auth typecheck && bun run --cwd apps/api typecheck && bun run --cwd apps/web typecheck && bun run --cwd packages/cli typecheck && bun x tsc -p scripts/jobs/tsconfig.json && bun x tsc -p scripts/originals/tsconfig.json",
+    "jobs:import": "bun scripts/jobs/cli.ts import",
+    "jobs:add": "bun scripts/jobs/cli.ts add",
+    "jobs:archive-legacy": "bun scripts/jobs/archive-legacy-outbox.ts",
+    "jobs:links": "bun scripts/jobs/link-discovery.ts",
+    "links:share": "bun scripts/website-analytics/links-share.ts"
+  },
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "dependencies": {
+    "@ai-hero/sandcastle": "^0.12.0",
+    "@aws-sdk/client-sesv2": "^3.1169.0",
+    "@aws-sdk/credential-provider-ini": "^3.973.30",
+    "libphonenumber-js": "1.13.15",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "typescript": "^5"
+  }
+}

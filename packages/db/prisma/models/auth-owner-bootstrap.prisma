@@ -1,0 +1,23 @@
+model AuthOwner {
+  id        String   @id
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Restrict)
+  createdAt DateTime @default(now())
+
+  @@map("auth_owner")
+}
+
+model OwnerSetupToken {
+  id                              String    @id
+  tokenHash                       String    @unique
+  expiresAt                       DateTime
+  usedAt                          DateTime?
+  supersededAt                    DateTime?
+  registrationChallenge           String?
+  registrationChallengeExpiresAt  DateTime?
+  createdAt                       DateTime  @default(now())
+  updatedAt                       DateTime  @updatedAt
+
+  @@index([expiresAt])
+  @@map("owner_setup_token")
+}

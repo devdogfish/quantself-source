@@ -1,0 +1,143 @@
+{
+  "syntheticOnly": true,
+  "captureId": "e36b6ed6-63a7-4de5-8fdc-01c9cfc889a1",
+  "durationSeconds": 90,
+  "sourceSha256": "31d6b7c418ac1485c02d35b70d08596ec14b2de9e879b21fcc8611b539aa2148",
+  "reusedReadyOriginal": false,
+  "uploadMs": 1317,
+  "checks": [
+    {
+      "name": "full1",
+      "status": 200,
+      "bytes": 8640044,
+      "elapsedMs": 214,
+      "contentRange": null,
+      "hashMatches": true
+    },
+    {
+      "name": "full2",
+      "status": 200,
+      "bytes": 8640044,
+      "elapsedMs": 185,
+      "contentRange": null,
+      "hashMatches": true
+    },
+    {
+      "name": "prefix",
+      "status": 206,
+      "bytes": 65536,
+      "elapsedMs": 99,
+      "contentRange": "bytes 0-65535/8640044",
+      "hashMatches": true
+    },
+    {
+      "name": "middle",
+      "status": 206,
+      "bytes": 65536,
+      "elapsedMs": 99,
+      "contentRange": "bytes 4320044-4385579/8640044",
+      "hashMatches": true
+    },
+    {
+      "name": "suffix",
+      "status": 206,
+      "bytes": 65536,
+      "elapsedMs": 127,
+      "contentRange": "bytes 8574508-8640043/8640044",
+      "hashMatches": true
+    }
+  ],
+  "unsatisfiableRangeStatus": 416,
+  "requests": {
+    "upload": {
+      "PROPFIND": 2,
+      "MKCOL": 2,
+      "PUT": 1,
+      "MOVE": 1,
+      "GET": 1
+    },
+    "full1": {
+      "GET": 1
+    },
+    "full2": {
+      "GET": 1
+    },
+    "prefix": {
+      "GET": 1
+    },
+    "middle": {
+      "GET": 1
+    },
+    "suffix": {
+      "GET": 1
+    },
+    "unsatisfiable": {
+      "GET": 1
+    }
+  },
+  "ledger": {
+    "provider": "opencloud",
+    "spaceId": "d3a176a6-2f2a-49fe-9ead-159902b4c48f$36b7656a-8f4c-4d30-8fdd-2934394b7102",
+    "fileId": "d3a176a6-2f2a-49fe-9ead-159902b4c48f$36b7656a-8f4c-4d30-8fdd-2934394b7102!1993fd1e-0f15-41a2-88f1-b581cdef9c95",
+    "pathHint": "Recordings/e36b6ed6-63a7-4de5-8fdc-01c9cfc889a1-4a45e38f96328b50548513a47e3a83e7.audio",
+    "bytes": 8640044,
+    "sha256": "31d6b7c418ac1485c02d35b70d08596ec14b2de9e879b21fcc8611b539aa2148",
+    "state": "ready"
+  },
+  "scope": "Deployed capture service upload and media response timings inside API container; not browser latency or recovery evidence",
+  "observedDateUtc": "2026-11-14",
+  "environment": "private Keep validation, not Hostinger production",
+  "appImage": "sha256:fef4d9af7bce109e8b5c6245422df8e01f42af9a117bef8a0f976fb2b48b5530",
+  "browserPlaybackVerified": false,
+  "browserSeekingVerified": false,
+  "restoreVerified": false,
+  "limits": [
+    "Full and ranged bytes match synthetic source; measurements are sequential and do not establish cold-cache performance",
+    "Top-level media URL navigation was blocked by Brave and Chrome (ERR_BLOCKED_BY_CLIENT); actual app player remains to be exercised",
+    "No successful encrypted PBS/offsite pair or full recovery demonstrated by this artifact"
+  ],
+  "inventoryBrowserProof": {
+    "itemId": "cmwfw8s81000108pexfd5few0",
+    "audioId": "cmwfweps7000508pe801fwaus",
+    "upload": "Authenticated Owner UI via native Chrome file picker; generated WAV only",
+    "bytes": 8640044,
+    "mime": "audio/x-wav",
+    "reference": "original:inventory:edb1fe40e2f1498ba6a13df22df56ccd25746b348db0446d5c76b178d4c48e22:0",
+    "fileId": "d3a176a6-2f2a-49fe-9ead-159902b4c48f$36b7656a-8f4c-4d30-8fdd-2934394b7102!102b4e1b-0d1a-4551-877b-7011fbda3f0a",
+    "provider": "opencloud",
+    "state": "ready",
+    "sourceAndLedgerSha256": "31d6b7c418ac1485c02d35b70d08596ec14b2de9e879b21fcc8611b539aa2148",
+    "durationSeconds": 90,
+    "playbackVerified": true,
+    "seekingVerified": true,
+    "observations": [
+      {
+        "action": "Play",
+        "currentTime": 0.043779,
+        "paused": false,
+        "readyState": 4,
+        "mediaError": null
+      },
+      {
+        "action": "UI seek near end, then Play",
+        "currentTime": 87.031769,
+        "paused": false,
+        "readyState": 4,
+        "mediaError": null
+      },
+      {
+        "action": "Observe completion",
+        "currentTime": 90,
+        "ended": true,
+        "paused": true,
+        "mediaError": null
+      }
+    ],
+    "limits": [
+      "Browser media decoding and UI seeking verified; browser latency not measured",
+      "Separate original from To-Do capture above; direct To-Do media navigation remains browser-blocked",
+      "Synthetic item remains queued for preprocessing; no OCR/transcription provider used",
+      "Full restore and post-restart replay still pending"
+    ]
+  }
+}

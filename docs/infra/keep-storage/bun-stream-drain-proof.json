@@ -1,0 +1,64 @@
+{
+  "proof": "scripts/infra/keep-storage/prove-bun-stream-drain.js",
+  "proofSha256": "a3a1538f453e649a6e9dece56cc6f27060f0adfa2a04133367e0e3ec9f035131",
+  "observedDateUtc": "2026-11-14",
+  "fixture": "Synthetic loopback HTTP; no application environment, database, credentials or external network",
+  "stopObservationMs": 500,
+  "runs": [
+    {
+      "bun": "1.3.4",
+      "context": "Pinned Keep application image on quantself"
+    },
+    {
+      "bun": "1.3.14",
+      "context": "Local sandcastle:quantself Linux image"
+    }
+  ],
+  "sharedOutcome": {
+    "buffered": "passed",
+    "directStreamCompleted": "passed",
+    "directStreamClientAborted": "passed",
+    "forwarded206Completed": "passed",
+    "forwarded206ClientAborted": {
+      "pendingRequestsBeforeStop": 1,
+      "pendingRequestsAtDeadline": 1,
+      "pendingRequestsAfterUpstreamRelease": 1,
+      "stopResolvedBeforeDeadline": false,
+      "stopResolvedAfterUpstreamRelease": false,
+      "upstreamPendingRequestsBeforeAndAfterRelease": [
+        1,
+        0
+      ],
+      "upstreamCancelCount": 0
+    }
+  },
+  "cancellationOwningBridge": {
+    "verifiedVersions": [
+      "1.3.4",
+      "1.3.14"
+    ],
+    "forwarded206Completed": "passed",
+    "forwarded206ClientAborted": {
+      "pendingRequestsBeforeStop": 0,
+      "pendingRequestsAtDeadline": 0,
+      "stopResolvedBeforeDeadline": true,
+      "bridgeCancelCount": 1
+    },
+    "cancelErrorControl": "Cancellation ran once and released the upstream reader when upstream cancellation rejected",
+    "pinnedRunExit": "The pinned bun -e invocation ran both variants and returned 3 because the deliberate unbridged baseline missed the deadline"
+  },
+  "limit": "Reproduces a shutdown hang on both versions in isolation and verifies the bridge in the fixture. The original live stop had no in-process request counter instrumentation, so the fixture does not prove its exact pending operation. Application integration is separate.",
+  "firstCoordinatedBackup": {
+    "restoreId": "20261114T051223Z-13081903ae4c",
+    "status": "failed-before-capture",
+    "failure": "quantself.pause: api did not exit cleanly",
+    "apiDeadlineSeconds": 780,
+    "postgresAndVaultNotPaused": true,
+    "pbsStarted": false,
+    "offsiteUploadStarted": false,
+    "applicationResume": "verified",
+    "privateHttpsHealthStatus": 200,
+    "activeJournalCleared": true,
+    "completeManifestCreated": false
+  }
+}
